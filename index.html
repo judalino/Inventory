@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSH2Tech Cloud Inventory</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        // Fixed Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCaU8ZlDt3iWsqMnLzmMF2cwe_Zj6Ls72A",
+            authDomain: "jsh2tech-inventory-e8b34.firebaseapp.com",
+            projectId: "jsh2tech-inventory-e8b34",
+            storageBucket: "jsh2tech-inventory-e8b34.firebasestorage.app",
+            messagingSenderId: "606686103127",
+            appId: "1:606686103127:web:e0a24aa8fad24ce3268512",
+            databaseURL: "https://jsh2tech-inventory-e8b34-default-rtdb.asia-southeast1.firebasedatabase.app"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const inventoryRef = ref(db, 'inventory');
+
+        // Make functions global
+        window.handleAction = () => {
+            const name = document.getElementById('pName').value;
+            const date = document.getElementById('pDate').value;
+            const buy = parseFloat(document.getElementById('bPrice').value);
+            const sell = parseFloat(document.getElementById('sPrice').value);
+            const qty = parseInt(document.getElementById('qty').value);
+            const editId = document.getElementById('editId').value;
+
+            if(!name || !date || isNaN(buy) || isNaN(sell) || isNaN(qty)) { 
+                alert("Please fill all fields correctly!"); 
+                return; 
+            }
+            
+            const profit = (sell - buy) * qty;
+            const itemData = { name, date, buy, sell, qty, profit };
+
+            if (editId) {
+                update(ref(db, 'inventory/' + editId), itemData)
+                    .then(() => resetMode())
+                    .catch((error) => alert("Update failed: " + error.message));
+            } else {
+                push(inventoryRef, itemData)
+                    .catch((error) => alert("Save failed: " + error.message));
+            }
+            clearInputs();
+        };
+
+        window.deleteItem = (id) => {
+            if(confirm("Are you sure you want to delete this item?")) {
+                remove(ref(db, 'inventory/' + id));
+            }
+        };
+
+        // Sync Data Automatically
+        onValue(inventoryRef, (snapshot) => {
+            const data = snapshot.val();
+            const inventoryArray = [];
+            for (let id in data) {
+                inventoryArray.push({ id, ...data[id] });
+            }
+            displayInventory(inventoryArray);
+        });
+
+        window.editItem = (id, name, date, buy, sell, qty) => {
+            document.getElementById('pName').value = name;
+            document.getElementById('pDate').value = date;
+            document.getElementById('bPrice').value = buy;
+            document.getElementById('sPrice').value = sell;
+            document.getElementById('qty').value = qty;
+            document.getElementById('editId').value = id;
+            document.getElementById('actionBtn').innerText = "Update Product";
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        };
+    </script>
+
+    <style>
+        :root { --primary: #4f46e5; --success: #10b981; --danger: #ef4444; --edit: #f59e0b; --bg: #f8fafc; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); margin: 0; padding: 15px; color: #1e293b; }
+        .container { max-width: 1100px; margin: auto; }
+        .header-banner { text-align: center; background: #000; padding: 20px; border-radius: 16px; margin-bottom: 15px; }
+        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; position: sticky; top: 0; z-index: 100; background-color: var(--bg); padding: 10px 0; }
+        .summary-card { padding: 15px; border-radius: 12px; background: #fff; border: 1px solid #e2e8f0; text-align: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .summary-card h3 { margin: 0; font-size: 12px; color: #64748b; text-transform: uppercase; }
+        .summary-card p { margin: 5px 0 0; font-size: 18px; font-weight: 700; }
+        .main-card { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .input-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; background: #f1f5f9; padding: 15px; border-radius: 12px; }
+        #pName { grid-column: span 2; }
+        input { padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; width: 100%; box-sizing: border-box; outline: none; }
+        input:focus { border-color: var(--primary); }
+        .btn-main { background: var(--primary); color: white; padding: 14px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
+        .btn-qr { background: #000; color: white; padding: 14px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .btn-main:active, .btn-qr:active { opacity: 0.8; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px; border-bottom: 1px solid #f1f5f9; text-align: left; }
+        th { color: #64748b; font-size: 13px; }
+        #reader { width: 100%; border-radius: 12px; margin-bottom: 15px; display: none; border: 2px solid var(--primary); overflow: hidden; }
+        .monthly-scroll-container { display: flex; overflow-x: auto; gap: 12px; padding-bottom: 10px; }
+        .month-mini-card { min-width: 130px; background: #f1f5f9; padding: 10px; border-radius: 10px; text-align: center; border: 1px solid #e2e8f0; }
+        .btn-edit { background: var(--edit); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; margin-right: 5px; }
+        .btn-del { background: var(--danger); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
+        @media (max-width: 768px) { 
+            thead { display: none; } 
+            td { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; } 
+            td::before { content: attr(data-label); font-weight: 700; color: #64748b; } 
+            .input-group { grid-template-columns: 1fr; }
+            #pName { grid-column: span 1; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-banner">
+        <h2 style="color: white; margin: 0;">JSH2Tech Cloud Systems</h2>
+    </div>
+
+    <div class="summary-grid">
+        <div class="summary-card" style="border-top: 4px solid var(--success);"><h3>+ Profit</h3><p id="totalPos">₱0</p></div>
+        <div class="summary-card" style="border-top: 4px solid var(--danger);"><h3>- Profit</h3><p id="totalNeg">₱0</p></div>
+        <div class="summary-card" style="border-top: 4px solid var(--primary);"><h3>Net Total</h3><p id="totalNet">₱0</p></div>
+    </div>
+
+    <div id="reader"></div>
+
+    <div class="main-card">
+        <h3 style="margin-top:0; font-size: 14px; color: #64748b;">📅 Monthly Performance</h3>
+        <div id="monthlyGrid" class="monthly-scroll-container"></div>
+    </div>
+
+    <div class="main-card">
+        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+            <button class="btn-qr" style="flex: 1;" onclick="toggleScanner()">📷 Scan QR</button>
+            <button class="btn-main" style="flex: 2;" id="actionBtn" onclick="handleAction()">Add Product</button>
+        </div>
+        <div class="input-group">
+            <input type="text" id="pName" placeholder="Product Name (e.g. Dell M6600)">
+            <input type="date" id="pDate">
+            <input type="number" id="qty" placeholder="Quantity">
+            <input type="number" id="bPrice" placeholder="Buying Price">
+            <input type="number" id="sPrice" placeholder="Selling Price">
+            <input type="hidden" id="editId">
+        </div>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Date</th>
+                        <th>Qty</th>
+                        <th>Profit</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="inventoryBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    let html5QrCode;
+    function toggleScanner() {
+        const reader = document.getElementById('reader');
+        if (reader.style.display === 'block') { stopScanner(); } 
+        else { reader.style.display = 'block'; startScanner(); }
+    }
+    function startScanner() {
+        html5QrCode = new Html5Qrcode("reader");
+        html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
+            const p = text.split(',');
+            if(p.length >= 3) {
+                document.getElementById('pName').value = p[0].trim();
+                document.getElementById('bPrice').value = p[1].trim();
+                document.getElementById('sPrice').value = p[2].trim();
+                document.getElementById('qty').value = 1;
+                stopScanner();
+            }
+        }).catch(err => {
+            alert("Camera error: Ensure you are using HTTPS (GitHub Pages)");
+            stopScanner();
+        });
+    }
+    function stopScanner() { 
+        if(html5QrCode) {
+            html5QrCode.stop().then(() => {
+                document.getElementById('reader').style.display = 'none';
+            });
+        }
+    }
+
+    function displayInventory(inventory) {
+        const body = document.getElementById('inventoryBody');
+        const mGrid = document.getElementById('monthlyGrid');
+        let pos = 0, neg = 0, stats = {};
+
+        body.innerHTML = '';
+        inventory.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(item => {
+            const profit = item.profit || 0;
+            if(profit >= 0) pos += profit; else neg += profit;
+
+            const d = new Date(item.date);
+            const key = d.getFullYear() + "-" + (d.getMonth()+1);
+            if(!stats[key]) stats[key] = { profit: 0, label: d.toLocaleString('default', {month:'short', year:'2-digit'}) };
+            stats[key].profit += profit;
+
+            const row = body.insertRow();
+            row.innerHTML = `
+                <td data-label="Product">${item.name}</td>
+                <td data-label="Date">${item.date}</td>
+                <td data-label="Qty">${item.qty}</td>
+                <td data-label="Profit" style="color:${profit >=0 ? '#10b981':'#ef4444'}; font-weight:bold">₱${profit.toLocaleString()}</td>
+                <td data-label="Actions">
+                    <button class="btn-edit" onclick="editItem('${item.id}','${item.name}','${item.date}',${item.buy},${item.sell},${item.qty})">Edit</button>
+                    <button class="btn-del" onclick="deleteItem('${item.id}')">Delete</button>
+                </td>
+            `;
+        });
+
+        document.getElementById('totalPos').innerText = "₱" + pos.toLocaleString();
+        document.getElementById('totalNeg').innerText = "₱" + Math.abs(neg).toLocaleString();
+        document.getElementById('totalNet').innerText = "₱" + (pos+neg).toLocaleString();
+
+        mGrid.innerHTML = '';
+        Object.keys(stats).sort().reverse().forEach(k => {
+            mGrid.innerHTML += `<div class="month-mini-card"><h4 style="margin:0; font-size:12px;">${stats[k].label}</h4><p style="margin:5px 0 0; font-weight:bold; color:var(--primary)">₱${stats[k].profit.toLocaleString()}</p></div>`;
+        });
+    }
+
+    function clearInputs() {
+        document.getElementById('pName').value=''; 
+        document.getElementById('bPrice').value=''; 
+        document.getElementById('sPrice').value=''; 
+        document.getElementById('qty').value='';
+        document.getElementById('pDate').value='';
+    }
+    
+    function resetMode() {
+        document.getElementById('editId').value = '';
+        document.getElementById('actionBtn').innerText = "Add Product";
+    }
+</script>
+</body>
+</html>
