@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JSH2Tech | Cloud Sales System</title>
+    <title>JSH2Tech | Cloud Inventory Dashboard</title>
     
     <script src="https://unpkg.com/html5-qrcode"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -35,207 +35,257 @@
             flex-direction: column;
             position: fixed;
             height: 100vh;
-            transition: transform 0.3s ease;
+            transition: all 0.3s;
             z-index: 1000;
         }
-
         .sidebar-header {
-            padding: 25px;
+            padding: 30px 20px;
             text-align: center;
             font-weight: 700;
             font-size: 1.2rem;
+            letter-spacing: 1px;
             border-bottom: 1px solid #1e293b;
         }
-
-        .nav-links { padding: 15px 0; flex-grow: 1; overflow-y: auto; }
+        .nav-links { padding: 20px 0; flex-grow: 1; }
         .nav-item {
-            padding: 12px 20px;
+            padding: 14px 25px;
             display: flex;
             align-items: center;
             cursor: pointer;
             color: #94a3b8;
             transition: 0.2s;
             text-decoration: none;
-            font-size: 0.95rem;
         }
-
-        .nav-item i { margin-right: 12px; width: 20px; text-align: center; }
+        .nav-item i { margin-right: 15px; width: 20px; text-align: center; }
         .nav-item:hover, .nav-item.active {
             background-color: #1e293b;
             color: white;
             border-left: 4px solid var(--primary);
         }
+        .logout-area { padding: 20px; border-top: 1px solid #1e293b; }
 
         /* Main Content Area */
         .main-content {
             margin-left: 260px;
             flex-grow: 1;
-            padding: 30px;
+            padding: 40px;
             width: calc(100% - 260px);
-            transition: 0.3s;
         }
 
-        .view-section { display: none; animation: fadeIn 0.3s ease; }
+        /* View Management */
+        .view-section { display: none; animation: fadeIn 0.3s ease-in-out; }
         .view-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Auth Screen */
+        #authSection {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg); z-index: 9999; display: flex; align-items: center; justify-content: center;
+        }
+        .auth-card {
+            background: white; padding: 40px; border-radius: 20px;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); width: 100%; max-width: 400px;
+        }
 
         /* KPI Cards */
-        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 25px; margin-bottom: 30px; }
         .kpi-card {
-            background: var(--card); padding: 20px; border-radius: 12px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02); border: 1px solid #e2e8f0;
+            background: var(--card); padding: 25px; border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;
         }
-        .kpi-card .value { font-size: 1.5rem; font-weight: 700; margin-top: 5px; }
+        .kpi-card h3 { margin: 0; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; }
+        .kpi-card .value { font-size: 1.8rem; font-weight: 700; margin: 10px 0; }
 
-        /* Tables */
-        .table-container { 
-            background: white; border-radius: 12px; border: 1px solid #e2e8f0; 
-            overflow-x: auto; margin-top: 15px; 
+        /* Form & Inputs */
+        .form-card { background: white; padding: 30px; border-radius: 16px; border: 1px solid #e2e8f0; max-width: 800px; }
+        .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .full-width { grid-column: span 2; }
+        input {
+            width: 100%; padding: 12px 15px; border-radius: 8px;
+            border: 1px solid #e2e8f0; outline: none; transition: 0.2s;
         }
-        table { width: 100%; border-collapse: collapse; min-width: 600px; }
-        th { background: #f8fafc; padding: 12px 15px; text-align: left; font-size: 0.8rem; color: var(--text-muted); }
-        td { padding: 12px 15px; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
-
-        /* Mobile Menu Toggle */
-        .mobile-toggle {
-            display: none; position: fixed; bottom: 20px; right: 20px;
-            width: 50px; height: 50px; border-radius: 25px; background: var(--primary);
-            color: white; border: none; z-index: 2001; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-        }
-
-        /* Forms */
-        .form-card { background: white; padding: 25px; border-radius: 12px; border: 1px solid #e2e8f0; }
-        .input-group { margin-bottom: 15px; }
-        label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 5px; color: var(--text-muted); }
-        input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; }
-
-        .btn { 
-            padding: 10px 15px; border-radius: 8px; border: none; cursor: pointer; 
-            font-weight: 600; display: inline-flex; align-items: center; 
+        input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
+        .btn {
+            padding: 12px 25px; border-radius: 8px; border: none; font-weight: 600;
+            cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center;
         }
         .btn-primary { background: var(--primary); color: white; }
-        .btn-sm { padding: 5px 10px; font-size: 0.75rem; }
+        .btn-danger { background: var(--danger); color: white; padding: 8px 12px; }
 
-        #authSection {
-            position: fixed; top:0; left:0; width:100%; height:100%; background:var(--bg);
-            display:flex; align-items:center; justify-content:center; z-index:9999;
+        /* Table Styling */
+        .table-container { background: white; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; margin-top: 20px;}
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #f1f5f9; padding: 15px; text-align: left; font-size: 0.85rem; color: var(--text-muted); }
+        td { padding: 15px; border-bottom: 1px solid #f1f5f9; }
+
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.7); display: flex; align-items: center;
+            justify-content: center; z-index: 2000; backdrop-filter: blur(4px);
         }
-
-        @media (max-width: 1024px) {
-            .sidebar { transform: translateX(-100%); }
-            .sidebar.open { transform: translateX(0); }
-            .main-content { margin-left: 0; width: 100%; padding: 20px; }
-            .mobile-toggle { display: block; }
+        .modal-card {
+            background: white; padding: 30px; border-radius: 20px;
+            width: 90%; max-width: 600px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
         }
-
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .hidden { display: none !important; }
+        
+        @media (max-width: 768px) {
+            .sidebar { width: 70px; }
+            .sidebar span, .sidebar-header { display: none; }
+            .main-content { margin-left: 70px; width: calc(100% - 70px); padding: 20px; }
+        }
     </style>
 </head>
 <body>
 
-<button class="mobile-toggle" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-
+<!-- Authentication -->
 <div id="authSection">
-    <div class="form-card" style="width: 90%; max-width: 400px;">
-        <h2 id="authTitle">Cloud Login</h2>
-        <input type="email" id="authEmail" placeholder="Email" style="margin-bottom: 10px;">
-        <input type="password" id="authPwd" placeholder="Password">
+    <div class="auth-card">
+        <h2 id="authTitle" style="margin-bottom: 10px;">Cloud Login</h2>
+        <input type="email" id="authEmail" placeholder="Email Address">
+        <input type="password" id="authPwd" placeholder="Password" style="margin-top: 10px;">
         <button class="btn btn-primary" id="authBtn" style="width: 100%; margin-top: 20px;">Sign In</button>
-        <p style="text-align: center; font-size: 0.8rem; margin-top: 15px;">
-            <a href="#" id="toggleAuth" style="color: var(--primary);">Request Admin Access</a>
+        <p style="text-align: center; margin-top: 20px; font-size: 0.9rem;">
+            <a href="#" id="toggleAuth" style="color: var(--primary); text-decoration: none;">Request Admin Access</a>
         </p>
     </div>
 </div>
 
-<nav class="sidebar" id="sidebar">
+<!-- Navigation Sidebar -->
+<nav class="sidebar hidden" id="sidebar">
     <div class="sidebar-header">JSH2Tech</div>
     <div class="nav-links">
-        <div class="nav-item active" onclick="showView('v-dash', this)"><i class="fas fa-chart-line"></i><span>Sales Overview</span></div>
-        <div class="nav-item" onclick="showView('v-add', this)"><i class="fas fa-plus-circle"></i><span>Add Product</span></div>
-        <div class="nav-item" onclick="showView('v-list', this)"><i class="fas fa-boxes-stacked"></i><span>Full Inventory</span></div>
-        <div class="nav-item" onclick="showView('v-avail', this)"><i class="fas fa-check-circle"></i><span>Available Stock</span></div>
-        <div class="nav-item" onclick="showView('v-sold', this)"><i class="fas fa-shopping-cart"></i><span>Sold Items</span></div>
-        <div class="nav-item" onclick="showView('v-qr', this)"><i class="fas fa-qrcode"></i><span>QR Scanner</span></div>
+        <div class="nav-item active" onclick="showView('v-dash', this)">
+            <i class="fas fa-chart-pie"></i><span>Dashboard</span>
+        </div>
+        <div class="nav-item" onclick="showView('v-add', this)">
+            <i class="fas fa-plus-circle"></i><span>Add Product</span>
+        </div>
+        <div class="nav-item" onclick="showView('v-list', this)">
+            <i class="fas fa-boxes-stacked"></i><span>Full Inventory</span>
+        </div>
+        <!-- NEW NAVIGATION ITEMS -->
+        <div class="nav-item" onclick="showView('v-sold', this)">
+            <i class="fas fa-shopping-cart" style="color: var(--success);"></i><span>Sold Items</span>
+        </div>
+        <div class="nav-item" onclick="showView('v-avail', this)">
+            <i class="fas fa-warehouse" style="color: var(--warning);"></i><span>Available Stock</span>
+        </div>
+        
+        <div class="nav-item" onclick="showView('v-qr', this)">
+            <i class="fas fa-qrcode"></i><span>QR Scanner</span>
+        </div>
     </div>
-    <div style="padding: 20px;"><button onclick="logout()" class="btn" style="width:100%; background:#334155; color:white;">Logout</button></div>
+    <div class="logout-area">
+        <button onclick="logout()" class="btn btn-danger" style="width: 100%;">
+            <i class="fas fa-sign-out-alt" style="margin-right: 10px;"></i>Logout
+        </button>
+    </div>
 </nav>
 
-<main class="main-content" id="mainContent">
+<!-- Main Content -->
+<main class="main-content hidden" id="mainContent">
     
-    <!-- Sales Overview -->
+    <!-- Dashboard -->
     <section id="v-dash" class="view-section active">
-        <h1>Sales Overview</h1>
+        <h1>Performance Overview</h1>
         <div class="kpi-grid">
-            <div class="kpi-card" style="border-top: 4px solid var(--success);">
-                <label>Total Profit</label>
+            <div class="kpi-card" style="border-left: 5px solid var(--success);">
+                <h3>Total Profit (Sold)</h3>
                 <div class="value" id="kpi-pos" style="color: var(--success);">₱0</div>
             </div>
-            <div class="kpi-card" style="border-top: 4px solid var(--primary);">
-                <label>Net Margin</label>
+            <div class="kpi-card" style="border-left: 5px solid var(--warning);">
+                <h3>Asset Value (Available)</h3>
+                <div class="value" id="kpi-neg" style="color: var(--warning);">₱0</div>
+            </div>
+            <div class="kpi-card" style="border-left: 5px solid var(--primary);">
+                <h3>Net Balance</h3>
                 <div class="value" id="kpi-net">₱0</div>
             </div>
         </div>
-        <h3>Profit Trend (Monthly)</h3>
+        <h3>Monthly Trend</h3>
         <div id="monthlyGrid" style="display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px;"></div>
     </section>
 
-    <!-- Add Product -->
-    <section id="v-add" class="view-section">
-        <h1>New Stock Entry</h1>
-        <div class="form-card">
-            <div class="input-group"><label>Product Name</label><input type="text" id="pName"></div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                <div class="input-group"><label>Date</label><input type="date" id="pDate"></div>
-                <div class="input-group"><label>Quantity</label><input type="number" id="qty"></div>
-                <div class="input-group"><label>Cost (₱)</label><input type="number" id="bPrice"></div>
-                <div class="input-group"><label>Sale (₱)</label><input type="number" id="sPrice"></div>
-            </div>
-            <button class="btn btn-primary" id="actionBtn" style="width: 100%; margin-top: 10px;">Save to Cloud</button>
+    <!-- Sold Items View -->
+    <section id="v-sold" class="view-section">
+        <h1>Sold Items (Positive Profit)</h1>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr><th>Product</th><th>Date</th><th>Qty</th><th>Profit</th></tr>
+                </thead>
+                <tbody id="soldTableBody"></tbody>
+            </table>
         </div>
     </section>
 
-    <!-- Full Inventory -->
-    <section id="v-list" class="view-section">
-        <h1>Full Inventory</h1>
-        <input type="text" id="searchBar" placeholder="Search products..." style="margin-bottom: 15px; max-width: 300px;">
+    <!-- Available Stock View -->
+    <section id="v-avail" class="view-section">
+        <h1>Available Stock (Negative Profit/Pending)</h1>
         <div class="table-container">
             <table>
-                <thead><tr><th>Product</th><th>Date</th><th>Qty</th><th>Profit</th><th>Actions</th></tr></thead>
+                <thead>
+                    <tr><th>Product</th><th>Date</th><th>Qty</th><th>Investment Loss</th></tr>
+                </thead>
+                <tbody id="availTableBody"></tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Register View -->
+    <section id="v-add" class="view-section">
+        <h1>Inventory Entry</h1>
+        <div class="form-card">
+            <div class="input-grid">
+                <div class="full-width"><label>Product Name</label><input type="text" id="pName"></div>
+                <div><label>Date</label><input type="date" id="pDate"></div>
+                <div><label>Qty</label><input type="number" id="qty"></div>
+                <div><label>Cost (₱)</label><input type="number" id="bPrice"></div>
+                <div><label>Sale (₱)</label><input type="number" id="sPrice"></div>
+            </div>
+            <button class="btn btn-primary" id="actionBtn" style="margin-top: 25px; width: 100%;">Add Record</button>
+        </div>
+    </section>
+
+    <!-- Full List -->
+    <section id="v-list" class="view-section">
+        <h1>Complete Records</h1>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr><th>Product</th><th>Date</th><th>Qty</th><th>Profit</th><th>Action</th></tr>
+                </thead>
                 <tbody id="inventoryBody"></tbody>
             </table>
         </div>
     </section>
 
-    <!-- Available Items -->
-    <section id="v-avail" class="view-section">
-        <h1>Available Stock</h1>
-        <div class="table-container">
-            <table>
-                <thead><tr><th>Product</th><th>In Stock</th><th>Unit Price</th><th>Potential Profit</th></tr></thead>
-                <tbody id="availBody"></tbody>
-            </table>
-        </div>
-    </section>
-
-    <!-- Sold Items -->
-    <section id="v-sold" class="view-section">
-        <h1>Sales Ledger</h1>
-        <div class="table-container">
-            <table>
-                <thead><tr><th>Product</th><th>Sold Date</th><th>Sold Price</th><th>Actual Profit</th></tr></thead>
-                <tbody id="soldBody"></tbody>
-            </table>
-        </div>
-    </section>
-
-    <!-- QR Scanner -->
+    <!-- QR View -->
     <section id="v-qr" class="view-section">
-        <h1>QR Scanner</h1>
-        <div id="reader" style="width: 100%; max-width: 500px; border-radius: 12px; overflow: hidden;"></div>
-        <button class="btn btn-primary" onclick="startScanner()" style="margin-top: 20px;">Open Camera</button>
+        <h1>Scanner</h1>
+        <button class="btn btn-primary" onclick="startScanner()">Open Camera</button>
+        <div id="reader" style="width: 100%; max-width: 500px; margin-top: 20px;"></div>
     </section>
 
 </main>
+
+<!-- Edit Modal (Reused) -->
+<div id="editModal" class="modal-overlay hidden">
+    <div class="modal-card">
+        <h3>Edit Record</h3>
+        <div class="input-grid">
+            <div class="full-width"><input type="text" id="m_pName"></div>
+            <div><input type="date" id="m_pDate"></div>
+            <div><input type="number" id="m_qty"></div>
+            <div><input type="number" id="m_bPrice"></div>
+            <div><input type="number" id="m_sPrice"></div>
+        </div>
+        <input type="hidden" id="m_editId">
+        <button class="btn btn-primary" id="saveEditBtn" style="margin-top: 20px; width:100%">Update</button>
+        <button class="btn" onclick="closeEditModal()" style="width:100%; margin-top:10px">Cancel</button>
+    </div>
+</div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -259,128 +309,87 @@
 
     let fullData = [];
 
-    // --- Navigation & UI ---
-    window.toggleMenu = () => document.getElementById('sidebar').classList.toggle('open');
-    
+    // Navigation
     window.showView = (id, el) => {
         document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         if(el) el.classList.add('active');
-        if(window.innerWidth <= 1024) toggleMenu();
     };
-
-    // --- Auth ---
-    const authBtn = document.getElementById('authBtn');
-    let isLogin = true;
-    document.getElementById('toggleAuth').onclick = () => {
-        isLogin = !isLogin;
-        document.getElementById('authTitle').innerText = isLogin ? "Cloud Login" : "Admin Signup";
-        authBtn.innerText = isLogin ? "Sign In" : "Register Admin";
-    };
-
-    authBtn.onclick = () => {
-        const e = document.getElementById('authEmail').value;
-        const p = document.getElementById('authPwd').value;
-        if(isLogin) signInWithEmailAndPassword(auth, e, p).catch(err => alert(err.message));
-        else createUserWithEmailAndPassword(auth, e, p).catch(err => alert(err.message));
-    };
-
-    onAuthStateChanged(auth, (user) => {
-        document.getElementById('authSection').style.display = user ? 'none' : 'flex';
-        if(user) onValue(inventoryRef, (snap) => {
-            const data = snap.val();
-            fullData = [];
-            for(let key in data) fullData.push({ id: key, ...data[key] });
-            renderAll();
-        });
-    });
 
     window.logout = () => signOut(auth);
 
-    // --- Database Operations ---
+    onAuthStateChanged(auth, (user) => {
+        const authView = document.getElementById('authSection');
+        const sidebar = document.getElementById('sidebar');
+        const main = document.getElementById('mainContent');
+        if(user) {
+            authView.classList.add('hidden');
+            sidebar.classList.remove('hidden');
+            main.classList.remove('hidden');
+            onValue(inventoryRef, (snap) => {
+                const data = snap.val();
+                fullData = [];
+                for(let key in data) fullData.push({ id: key, ...data[key] });
+                renderAll();
+            });
+        } else {
+            authView.classList.remove('hidden');
+            sidebar.classList.add('hidden');
+            main.classList.add('hidden');
+        }
+    });
+
+    // Add Item
     document.getElementById('actionBtn').onclick = () => {
         const payload = {
             name: document.getElementById('pName').value,
             date: document.getElementById('pDate').value,
             buy: parseFloat(document.getElementById('bPrice').value),
             sell: parseFloat(document.getElementById('sPrice').value),
-            qty: parseInt(document.getElementById('qty').value),
-            isSold: false
+            qty: parseInt(document.getElementById('qty').value)
         };
         payload.profit = (payload.sell - payload.buy) * payload.qty;
-        push(inventoryRef, payload).then(() => {
-            alert("Record Saved");
-            showView('v-list');
-        });
+        push(inventoryRef, payload).then(() => alert("Saved"));
     };
 
-    window.markAsSold = (id) => {
-        update(ref(db, 'inventory/' + id), { isSold: true });
-    };
-
-    window.deleteItem = (id) => { if(confirm("Delete record?")) remove(ref(db, 'inventory/'+id)); };
-
-    // --- Rendering ---
+    // Render Logic
     function renderAll() {
-        const pos = fullData.filter(i => i.isSold).reduce((acc, i) => acc + (i.profit || 0), 0);
-        document.getElementById('kpi-pos').innerText = "₱" + pos.toLocaleString();
-        document.getElementById('kpi-net').innerText = "₱" + pos.toLocaleString();
-
-        // Monthly Profit Trend
-        const monthly = {};
-        fullData.filter(i => i.isSold).forEach(i => {
-            const d = new Date(i.date);
-            const key = d.getFullYear() + "-" + (d.getMonth()+1);
-            if(!monthly[key]) monthly[key] = { p: 0, label: d.toLocaleString('default', {month:'short', year:'2-digit'}) };
-            monthly[key].p += i.profit;
-        });
-
-        const mGrid = document.getElementById('monthlyGrid');
-        mGrid.innerHTML = '';
-        Object.keys(monthly).sort().reverse().forEach(k => {
-            mGrid.innerHTML += `
-                <div class="kpi-card" style="min-width: 120px; text-align: center;">
-                    <label>${monthly[k].label}</label>
-                    <div style="font-weight:700; color:var(--primary)">₱${monthly[k].p.toLocaleString()}</div>
-                </div>`;
-        });
-
-        // Tables
         const iBody = document.getElementById('inventoryBody');
-        const aBody = document.getElementById('availBody');
-        const sBody = document.getElementById('soldBody');
-        iBody.innerHTML = ''; aBody.innerHTML = ''; sBody.innerHTML = '';
+        const soldBody = document.getElementById('soldTableBody');
+        const availBody = document.getElementById('availTableBody');
+        
+        iBody.innerHTML = ''; soldBody.innerHTML = ''; availBody.innerHTML = '';
+        
+        let pos = 0, neg = 0;
 
         fullData.forEach(i => {
-            // Full List
-            iBody.innerHTML += `<tr>
-                <td>${i.name}</td><td>${i.date}</td><td>${i.qty}</td>
-                <td style="color:${i.profit >= 0 ? 'var(--success)' : 'var(--danger)'}">₱${i.profit.toLocaleString()}</td>
-                <td>
-                    <button class="btn btn-sm" onclick="markAsSold('${i.id}')" ${i.isSold ? 'disabled' : ''} style="background:var(--success); color:white; margin-right:5px;">Sold</button>
-                    <button class="btn btn-sm" onclick="deleteItem('${i.id}')" style="background:var(--danger); color:white;"><i class="fas fa-trash"></i></button>
-                </td>
-            </tr>`;
+            const p = i.profit || 0;
+            const rowHtml = `<td>${i.name}</td><td>${i.date}</td><td>${i.qty}</td><td style="color:${p >= 0 ? 'var(--success)' : 'var(--danger)'}">₱${p.toLocaleString()}</td>`;
+            
+            // Full Table
+            const r1 = iBody.insertRow();
+            r1.innerHTML = rowHtml + `<td><button class="btn btn-danger" onclick="deleteItem('${i.id}')">X</button></td>`;
 
-            // Available (Qty > 0 and not marked sold)
-            if(!i.isSold && i.qty > 0) {
-                aBody.innerHTML += `<tr><td>${i.name}</td><td>${i.qty}</td><td>₱${i.sell}</td><td>₱${i.profit}</td></tr>`;
-            }
-
-            // Sold
-            if(i.isSold) {
-                sBody.innerHTML += `<tr><td>${i.name}</td><td>${i.date}</td><td>₱${i.sell * i.qty}</td><td style="color:var(--success)">+₱${i.profit}</td></tr>`;
+            // Categorize
+            if(p >= 0) {
+                pos += p;
+                const r2 = soldBody.insertRow();
+                r2.innerHTML = rowHtml;
+            } else {
+                neg += p;
+                const r3 = availBody.insertRow();
+                r3.innerHTML = rowHtml;
             }
         });
+
+        document.getElementById('kpi-pos').innerText = "₱" + pos.toLocaleString();
+        document.getElementById('kpi-neg').innerText = "₱" + Math.abs(neg).toLocaleString();
+        document.getElementById('kpi-net').innerText = "₱" + (pos+neg).toLocaleString();
     }
 
-    // Search
-    document.getElementById('searchBar').oninput = (e) => {
-        const val = e.target.value.toLowerCase();
-        const filtered = fullData.filter(i => i.name.toLowerCase().includes(val));
-        // Simple re-render logic for search could be added here
-    };
+    window.deleteItem = (id) => remove(ref(db, 'inventory/'+id));
+
 </script>
 
 <script>
@@ -397,7 +406,7 @@
                 showView('v-add');
                 qrScanner.stop();
             }
-        }).catch(err => alert("Camera error. Ensure HTTPS is active."));
+        });
     }
 </script>
 </body>
