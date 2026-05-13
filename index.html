@@ -26,7 +26,7 @@
         * { box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
         body { margin: 0; background-color: var(--bg); color: var(--text-main); display: flex; min-height: 100vh; }
 
-        /* Sidebar Styling */
+        /* Sidebar */
         .sidebar {
             width: 260px; background-color: var(--sidebar); color: white;
             display: flex; flex-direction: column; position: fixed;
@@ -42,47 +42,39 @@
         .nav-item:hover, .nav-item.active { background-color: #1e293b; color: white; border-left: 4px solid var(--primary); }
         .logout-area { padding: 20px; border-top: 1px solid #1e293b; }
 
-        /* Main Content */
+        /* Content Area */
         .main-content { margin-left: 260px; flex-grow: 1; padding: 40px; width: calc(100% - 260px); }
-        .view-section { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .view-section { display: none; }
         .view-section.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Auth */
+        /* Auth Screen */
         #authSection { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 9999; display: flex; align-items: center; justify-content: center; }
         .auth-card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
 
         /* KPIs */
         .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 25px; margin-bottom: 30px; }
         .kpi-card { background: var(--card); padding: 25px; border-radius: 16px; border: 1px solid #e2e8f0; }
-        .kpi-card h3 { margin: 0; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; }
-        .kpi-card .value { font-size: 1.8rem; font-weight: 700; margin: 10px 0; }
+        .value { font-size: 1.8rem; font-weight: 700; margin: 10px 0; }
 
-        /* Forms */
-        .form-card { background: white; padding: 30px; border-radius: 16px; border: 1px solid #e2e8f0; max-width: 800px; }
-        .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .full-width { grid-column: span 2; }
-        input { width: 100%; padding: 12px 15px; border-radius: 8px; border: 1px solid #e2e8f0; }
-        .btn { padding: 12px 25px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px;}
+        /* Buttons & Tables */
+        .btn { padding: 10px 20px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
         .btn-primary { background: var(--primary); color: white; }
-        .btn-warning { background: var(--warning); color: white; padding: 8px 12px; }
-        .btn-danger { background: var(--danger); color: white; padding: 8px 12px; }
-
-        /* Tables */
-        .table-container { background: white; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; margin-top: 20px;}
+        .btn-warning { background: var(--warning); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .table-container { background: white; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; }
         table { width: 100%; border-collapse: collapse; }
-        th { background: #f1f5f9; padding: 15px; text-align: left; font-size: 0.85rem; color: var(--text-muted); }
-        td { padding: 15px; border-bottom: 1px solid #f1f5f9; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #f1f5f9; }
 
         /* Modal */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); display: flex; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(4px); }
-        .modal-card { background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 600px; }
-        .hidden { display: none !important; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 2001; }
+        .modal-card { background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 500px; }
         
+        .hidden { display: none !important; }
+
         @media (max-width: 768px) {
             .sidebar { width: 70px; }
             .sidebar span, .sidebar-header { display: none; }
-            .main-content { margin-left: 70px; width: calc(100% - 70px); padding: 20px; }
+            .main-content { margin-left: 70px; width: calc(100% - 70px); }
         }
     </style>
 </head>
@@ -90,63 +82,38 @@
 
 <div id="authSection">
     <div class="auth-card">
-        <h2>Cloud Login</h2>
-        <input type="email" id="authEmail" placeholder="Email Address">
-        <input type="password" id="authPwd" placeholder="Password" style="margin-top: 10px;">
-        <button class="btn btn-primary" id="authBtn" style="width: 100%; margin-top: 20px;">Sign In</button>
+        <h2 style="text-align: center;">Cloud Login</h2>
+        <input type="email" id="authEmail" placeholder="Email" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd;">
+        <input type="password" id="authPwd" placeholder="Password" style="width:100%; padding:12px; margin-bottom:20px; border-radius:8px; border:1px solid #ddd;">
+        <button class="btn btn-primary" id="authBtn" style="width: 100%; justify-content: center;">Sign In</button>
     </div>
 </div>
 
 <nav class="sidebar hidden" id="sidebar">
     <div class="sidebar-header">JSH2Tech</div>
     <div class="nav-links">
-        <div class="nav-item active" onclick="showView('v-dash', this)"><i class="fas fa-chart-pie"></i><span>Dashboard</span></div>
-        <div class="nav-item" onclick="showView('v-add', this)"><i class="fas fa-plus-circle"></i><span>Add Product</span></div>
-        <div class="nav-item" onclick="showView('v-list', this)"><i class="fas fa-boxes-stacked"></i><span>Full Inventory</span></div>
-        <div class="nav-item" onclick="showView('v-sold', this)"><i class="fas fa-shopping-cart" style="color: var(--success);"></i><span>Sold Items</span></div>
-        <div class="nav-item" onclick="showView('v-avail', this)"><i class="fas fa-warehouse" style="color: var(--warning);"></i><span>Available Stock</span></div>
-        <div class="nav-item" onclick="showView('v-qr', this)"><i class="fas fa-qrcode"></i><span>QR Scanner</span></div>
+        <div class="nav-item active" onclick="showView('v-dash', this)"><i class="fas fa-chart-line"></i><span>Dashboard</span></div>
+        <div class="nav-item" onclick="showView('v-add', this)"><i class="fas fa-plus"></i><span>Add Product</span></div>
+        <div class="nav-item" onclick="showView('v-list', this)"><i class="fas fa-list"></i><span>Inventory List</span></div>
+        <div class="nav-item" onclick="showView('v-qr', this)"><i class="fas fa-qrcode"></i><span>Scanner</span></div>
     </div>
-    <div class="logout-area"><button onclick="logout()" class="btn btn-danger" style="width: 100%;"><i class="fas fa-sign-out-alt"></i>Logout</button></div>
+    <div class="logout-area">
+        <button onclick="logout()" class="btn btn-danger" style="width: 100%;"><i class="fas fa-sign-out-alt"></i>Logout</button>
+    </div>
 </nav>
 
 <main class="main-content hidden" id="mainContent">
-    
     <section id="v-dash" class="view-section active">
-        <h1>Performance Overview</h1>
+        <h1>Overview</h1>
         <div class="kpi-grid">
-            <div class="kpi-card" style="border-left: 5px solid var(--success);"><h3>Total Profit (Sold)</h3><div class="value" id="kpi-pos" style="color: var(--success);">₱0</div></div>
-            <div class="kpi-card" style="border-left: 5px solid var(--warning);"><h3>Asset Value (Available)</h3><div class="value" id="kpi-neg" style="color: var(--warning);">₱0</div></div>
-            <div class="kpi-card" style="border-left: 5px solid var(--primary);"><h3>Net Balance</h3><div class="value" id="kpi-net">₱0</div></div>
-        </div>
-    </section>
-
-    <section id="v-sold" class="view-section">
-        <h1>Sold Items</h1>
-        <div class="table-container"><table><thead><tr><th>Product</th><th>Date</th><th>Qty</th><th>Profit</th></tr></thead><tbody id="soldTableBody"></tbody></table></div>
-    </section>
-
-    <section id="v-avail" class="view-section">
-        <h1>Available Stock</h1>
-        <div class="table-container"><table><thead><tr><th>Product</th><th>Date</th><th>Qty</th><th>Investment Loss</th></tr></thead><tbody id="availTableBody"></tbody></table></div>
-    </section>
-
-    <section id="v-add" class="view-section">
-        <h1>Inventory Entry</h1>
-        <div class="form-card">
-            <div class="input-grid">
-                <div class="full-width"><label>Product Name</label><input type="text" id="pName"></div>
-                <div><label>Date</label><input type="date" id="pDate"></div>
-                <div><label>Qty</label><input type="number" id="qty"></div>
-                <div><label>Cost (₱)</label><input type="number" id="bPrice"></div>
-                <div><label>Sale (₱)</label><input type="number" id="sPrice"></div>
-            </div>
-            <button class="btn btn-primary" id="actionBtn" style="margin-top: 25px; width: 100%;">Add Record</button>
+            <div class="kpi-card"><h3>Total Profit</h3><div class="value" id="kpi-pos" style="color:var(--success);">₱0</div></div>
+            <div class="kpi-card"><h3>Invested</h3><div class="value" id="kpi-neg" style="color:var(--warning);">₱0</div></div>
+            <div class="kpi-card"><h3>Net</h3><div class="value" id="kpi-net">₱0</div></div>
         </div>
     </section>
 
     <section id="v-list" class="view-section">
-        <h1>Complete Records</h1>
+        <h1>Inventory Records</h1>
         <div class="table-container">
             <table>
                 <thead><tr><th>Product</th><th>Date</th><th>Qty</th><th>Profit</th><th>Actions</th></tr></thead>
@@ -155,28 +122,31 @@
         </div>
     </section>
 
-    <section id="v-qr" class="view-section">
-        <h1>Scanner</h1>
-        <button class="btn btn-primary" onclick="startScanner()">Open Camera</button>
-        <div id="reader" style="width: 100%; max-width: 500px; margin-top: 20px;"></div>
+    <section id="v-add" class="view-section">
+        <h1>New Entry</h1>
+        <div class="auth-card" style="max-width: 100%;">
+            <input type="text" id="pName" placeholder="Product Name"><br><br>
+            <input type="date" id="pDate"><br><br>
+            <input type="number" id="qty" placeholder="Quantity"><br><br>
+            <input type="number" id="bPrice" placeholder="Buy Price"><br><br>
+            <input type="number" id="sPrice" placeholder="Sell Price"><br><br>
+            <button class="btn btn-primary" id="actionBtn">Add Record</button>
+        </div>
     </section>
 </main>
 
-<!-- Edit Modal -->
 <div id="editModal" class="modal-overlay hidden">
     <div class="modal-card">
-        <h3>Edit Record</h3>
-        <div class="input-grid">
-            <div class="full-width"><label>Product Name</label><input type="text" id="m_pName"></div>
-            <div><label>Date</label><input type="date" id="m_pDate"></div>
-            <div><label>Qty</label><input type="number" id="m_qty"></div>
-            <div><label>Cost (₱)</label><input type="number" id="m_bPrice"></div>
-            <div><label>Sale (₱)</label><input type="number" id="m_sPrice"></div>
-        </div>
+        <h3>Edit Item</h3>
         <input type="hidden" id="m_editId">
-        <div style="margin-top: 20px; display: flex; gap: 10px;">
-            <button class="btn btn-primary" id="saveEditBtn" style="flex: 1;">Update</button>
-            <button class="btn" onclick="closeEditModal()" style="flex: 1; background: #e2e8f0;">Cancel</button>
+        <input type="text" id="m_pName" style="width:100%; margin-bottom:10px;">
+        <input type="date" id="m_pDate" style="width:100%; margin-bottom:10px;">
+        <input type="number" id="m_qty" placeholder="Qty" style="width:100%; margin-bottom:10px;">
+        <input type="number" id="m_bPrice" placeholder="Buy" style="width:100%; margin-bottom:10px;">
+        <input type="number" id="m_sPrice" placeholder="Sell" style="width:100%; margin-bottom:10px;">
+        <div style="display:flex; gap:10px;">
+            <button class="btn btn-primary" id="saveEditBtn">Update</button>
+            <button class="btn" onclick="closeEditModal()">Cancel</button>
         </div>
     </div>
 </div>
@@ -200,23 +170,25 @@
     const db = getDatabase(app);
     const auth = getAuth(app);
     const inventoryRef = ref(db, 'inventory');
-
     let fullData = [];
 
-    window.showView = (id, el) => {
-        document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        if(el) el.classList.add('active');
+    // --- FIX 1: Login Event Listener ---
+    document.getElementById('authBtn').onclick = () => {
+        const email = document.getElementById('authEmail').value;
+        const pass = document.getElementById('authPwd').value;
+        signInWithEmailAndPassword(auth, email, pass).catch(e => alert(e.message));
     };
 
     window.logout = () => signOut(auth);
 
     onAuthStateChanged(auth, (user) => {
+        const authView = document.getElementById('authSection');
+        const sidebar = document.getElementById('sidebar');
+        const main = document.getElementById('mainContent');
         if(user) {
-            document.getElementById('authSection').classList.add('hidden');
-            document.getElementById('sidebar').classList.remove('hidden');
-            document.getElementById('mainContent').classList.remove('hidden');
+            authView.classList.add('hidden');
+            sidebar.classList.remove('hidden');
+            main.classList.remove('hidden');
             onValue(inventoryRef, (snap) => {
                 const data = snap.val();
                 fullData = [];
@@ -224,47 +196,34 @@
                 renderAll();
             });
         } else {
-            document.getElementById('authSection').classList.remove('hidden');
-            document.getElementById('sidebar').classList.add('hidden');
-            document.getElementById('mainContent').classList.add('hidden');
+            authView.classList.remove('hidden');
+            sidebar.classList.add('hidden');
+            main.classList.add('hidden');
         }
     });
 
-    // Add Logic
-    document.getElementById('actionBtn').onclick = () => {
-        const payload = {
-            name: document.getElementById('pName').value,
-            date: document.getElementById('pDate').value,
-            buy: parseFloat(document.getElementById('bPrice').value),
-            sell: parseFloat(document.getElementById('sPrice').value),
-            qty: parseInt(document.getElementById('qty').value)
-        };
-        payload.profit = (payload.sell - payload.buy) * payload.qty;
-        push(inventoryRef, payload).then(() => { alert("Saved"); clearInputs(); });
-    };
-
+    // --- FIX 2: Re-added Edit and Delete rendering ---
     function renderAll() {
         const iBody = document.getElementById('inventoryBody');
-        const soldBody = document.getElementById('soldTableBody');
-        const availBody = document.getElementById('availTableBody');
-        iBody.innerHTML = ''; soldBody.innerHTML = ''; availBody.innerHTML = '';
+        iBody.innerHTML = '';
         let pos = 0, neg = 0;
 
         fullData.forEach(i => {
             const p = i.profit || 0;
-            const rowHtml = `<td>${i.name}</td><td>${i.date}</td><td>${i.qty}</td><td style="color:${p >= 0 ? 'var(--success)' : 'var(--danger)'}">₱${p.toLocaleString()}</td>`;
-            
-            // Full Table with Edit and Delete
-            const r1 = iBody.insertRow();
-            r1.innerHTML = rowHtml + `<td>
-                <button class="btn btn-warning" onclick="openEditModal('${i.id}')"><i class="fas fa-edit"></i></button>
-                <button class="btn btn-danger" onclick="deleteItem('${i.id}')"><i class="fas fa-trash"></i></button>
-            </td>`;
+            if(p >= 0) pos += p; else neg += p;
 
-            if(p >= 0) { pos += p; soldBody.insertRow().innerHTML = rowHtml; } 
-            else { neg += p; availBody.insertRow().innerHTML = rowHtml; }
+            const row = iBody.insertRow();
+            row.innerHTML = `
+                <td>${i.name}</td>
+                <td>${i.date}</td>
+                <td>${i.qty}</td>
+                <td style="color:${p >= 0 ? 'var(--success)' : 'var(--danger)'}">₱${p.toLocaleString()}</td>
+                <td>
+                    <button class="btn btn-warning" onclick="openEditModal('${i.id}')"><i class="fas fa-pen"></i></button>
+                    <button class="btn btn-danger" onclick="deleteItem('${i.id}')"><i class="fas fa-trash"></i></button>
+                </td>
+            `;
         });
-
         document.getElementById('kpi-pos').innerText = "₱" + pos.toLocaleString();
         document.getElementById('kpi-neg').innerText = "₱" + Math.abs(neg).toLocaleString();
         document.getElementById('kpi-net').innerText = "₱" + (pos+neg).toLocaleString();
@@ -273,12 +232,12 @@
     // Modal Logic
     window.openEditModal = (id) => {
         const item = fullData.find(i => i.id === id);
+        document.getElementById('m_editId').value = id;
         document.getElementById('m_pName').value = item.name;
         document.getElementById('m_pDate').value = item.date;
         document.getElementById('m_qty').value = item.qty;
         document.getElementById('m_bPrice').value = item.buy;
         document.getElementById('m_sPrice').value = item.sell;
-        document.getElementById('m_editId').value = id;
         document.getElementById('editModal').classList.remove('hidden');
     };
 
@@ -289,43 +248,34 @@
         const buy = parseFloat(document.getElementById('m_bPrice').value);
         const sell = parseFloat(document.getElementById('m_sPrice').value);
         const qty = parseInt(document.getElementById('m_qty').value);
-        
-        const updates = {
+        update(ref(db, 'inventory/'+id), {
             name: document.getElementById('m_pName').value,
             date: document.getElementById('m_pDate').value,
-            buy: buy,
-            sell: sell,
-            qty: qty,
+            buy: buy, sell: sell, qty: qty,
             profit: (sell - buy) * qty
-        };
-        update(ref(db, 'inventory/' + id), updates).then(() => {
-            closeEditModal();
-        });
+        }).then(() => closeEditModal());
     };
 
-    window.deleteItem = (id) => { if(confirm("Delete this record?")) remove(ref(db, 'inventory/'+id)); };
-    
-    function clearInputs() {
-        ['pName', 'pDate', 'qty', 'bPrice', 'sPrice'].forEach(id => document.getElementById(id).value = '');
-    }
-</script>
+    window.deleteItem = (id) => { if(confirm("Delete?")) remove(ref(db, 'inventory/'+id)); };
 
-<script>
-    let qrScanner;
-    function startScanner() {
-        qrScanner = new Html5Qrcode("reader");
-        qrScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
-            const p = text.split(',');
-            if(p.length >= 3) {
-                document.getElementById('pName').value = p[0].trim();
-                document.getElementById('bPrice').value = p[1].trim();
-                document.getElementById('sPrice').value = p[2].trim();
-                document.getElementById('qty').value = 1;
-                showView('v-add');
-                qrScanner.stop();
-            }
+    window.showView = (id, el) => {
+        document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        if(el) el.classList.add('active');
+    };
+
+    // Add logic
+    document.getElementById('actionBtn').onclick = () => {
+        const b = parseFloat(document.getElementById('bPrice').value);
+        const s = parseFloat(document.getElementById('sPrice').value);
+        const q = parseInt(document.getElementById('qty').value);
+        push(inventoryRef, {
+            name: document.getElementById('pName').value,
+            date: document.getElementById('pDate').value,
+            buy: b, sell: s, qty: q, profit: (s - b) * q
         });
-    }
+    };
 </script>
 </body>
 </html>
