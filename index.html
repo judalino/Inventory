@@ -166,6 +166,42 @@
         .modal-gallery { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
         .main-modal-img { width: 100%; height: 300px; object-fit: contain; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; }
 
+        /* Pagination Control System UI */
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 30px;
+            padding: 10px;
+        }
+        .pagination-btn {
+            background-color: var(--card);
+            border: 1px solid #e2e8f0;
+            color: var(--text-main);
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .pagination-btn:hover:not(:disabled) {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        .pagination-btn:disabled {
+            background-color: #f1f5f9;
+            color: #cbd5e1;
+            cursor: not-allowed;
+        }
+        .pagination-info {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
         .hidden { display: none !important; }
         
         @media (max-width: 768px) {
@@ -329,6 +365,12 @@
         </div>
 
         <div id="guestCatalogContainer" class="catalog-grid hidden"></div>
+
+        <div id="paginationModule" class="pagination-container">
+            <button id="btnPrevPage" class="pagination-btn" onclick="navigatePage(-1)"><i class="fas fa-chevron-left"></i> Prev</button>
+            <span id="pageInfoDetails" class="pagination-info">Page 1 of 1</span>
+            <button id="btnNextPage" class="pagination-btn" onclick="navigatePage(1)">Next <i class="fas fa-chevron-right"></i></button>
+        </div>
     </section>
 
     <section id="v-qr" class="view-section admin-only">
@@ -406,9 +448,9 @@
                 <input type="number" id="m_sPrice">
             </div>
             <div class="full-width">
-                <label style="font-size: 0.8rem; font-weight: 600;">Update Photos (Max 3 / Leaves current images intact if empty)</label>
+                <label style="font-size: 0.8rem;">Modify Photos (Overwrites Old Photos - Max 3)</label>
                 <input type="file" id="m_pPhotos" multiple accept="image/*" style="padding: 8px;">
-                <div id="modalPhotoPreviewContainer" class="preview-container"></div>
+                <div id="modalPreviewContainer" class="preview-container"></div>
             </div>
             <div class="full-width">
                 <label style="font-size: 0.8rem;">Product Details</label>
@@ -466,9 +508,13 @@
     let isLogin = true;
     let currentRole = 'guest'; 
     let currentBase64Images = [];
-    let editModalBase64Images = [];
+    let editBase64Images = [];
 
-    // --- PHOTO PROCESSING LOGIC (NEW REGISTRATION) ---
+    // --- PAGINATION DATA TRACKERS ---
+    let currentPage = 1;
+    let itemsPerPage = 5; 
+
+    // --- PHOTO PROCESSING LOGIC (REGISTER) ---
     document.getElementById('pPhotos').addEventListener('change', function(e) {
         const files = Array.from(e.target.files).slice(0, 3);
         currentBase64Images = [];
@@ -488,17 +534,17 @@
         });
     });
 
-    // --- PHOTO PROCESSING LOGIC (EDIT MODAL MATRIX) ---
+    // --- PHOTO PROCESSING LOGIC (EDIT MODAL) ---
     document.getElementById('m_pPhotos').addEventListener('change', function(e) {
         const files = Array.from(e.target.files).slice(0, 3);
-        editModalBase64Images = [];
-        const previewContainer = document.getElementById('modalPhotoPreviewContainer');
+        editBase64Images = [];
+        const previewContainer = document.getElementById('modalPreviewContainer');
         previewContainer.innerHTML = '';
 
         files.forEach(file => {
             const reader = new FileReader();
             reader.onload = function(evt) {
-                editModalBase64Images.push(evt.target.result);
+                editBase64Images.push(evt.target.result);
                 const img = document.createElement('img');
                 img.src = evt.target.result;
                 img.classList.add('preview-img');
@@ -510,7 +556,9 @@
 
     // --- GATEWAY LAYER ROUTING MIGRATIONS ---
     function configureUIVisibility() {
+        currentPage = 1; 
         if(currentRole === 'admin') {
+            itemsPerPage = 10; 
             document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
             document.getElementById('adminTableContainer').classList.remove('hidden');
             document.getElementById('guestCatalogContainer').classList.add('hidden');
@@ -518,6 +566,7 @@
             document.getElementById('listHeader').innerText = "Inventory Management Workspace";
             showView('v-dash', document.getElementById('navDash'));
         } else {
+            itemsPerPage = 5; 
             document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden'));
             document.getElementById('adminTableContainer').classList.add('hidden');
             document.getElementById('guestCatalogContainer').classList.remove('hidden');
@@ -573,19 +622,18 @@
         document.getElementById('m_sPrice').value = item.sell || 0;
         document.getElementById('m_pDetails').value = item.details || '';
         
-        // Fetch existing cloud photos to populate current configuration states
-        editModalBase64Images = item.images ? [...item.images] : [];
-        const previewContainer = document.getElementById('modalPhotoPreviewContainer');
+        // Show existing images in the modal preview frame
+        editBase64Images = item.images || [];
+        const previewContainer = document.getElementById('modalPreviewContainer');
         previewContainer.innerHTML = '';
-        
-        editModalBase64Images.forEach(imgData => {
+        editBase64Images.forEach(imgData => {
             const img = document.createElement('img');
             img.src = imgData;
             img.classList.add('preview-img');
             previewContainer.appendChild(img);
         });
 
-        document.getElementById('m_pPhotos').value = ''; // Flush input file handler state
+        document.getElementById('m_pPhotos').value = ''; 
         document.getElementById('editModal').classList.remove('hidden');
     };
 
@@ -611,7 +659,7 @@
             mainImg.src = item.images[0];
             mainImg.classList.remove('hidden');
             
-            item.images.forEach((imgBase64, index) => {
+            item.images.forEach((imgBase64) => {
                 const thumb = document.createElement('img');
                 thumb.src = imgBase64;
                 thumb.classList.add('preview-img');
@@ -640,6 +688,27 @@
         const body = encodeURIComponent(`Hello JSH2Tech,\n\nI want to purchase the following item found on your catalog:\n\nProduct Name: ${name}\nCategory: ${category}\nListed Price: ₱${(price || 0).toLocaleString()}\n\nPlease verify availability and provide payment details.\n\nThank you!`);
         
         window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${recipient}&su=${subject}&body=${body}`, '_blank');
+    }
+
+    // --- PAGINATION INTERACTIVE CONTROLS ---
+    window.navigatePage = (direction) => {
+        currentPage += direction;
+        filterAndRenderLayouts(fullData);
+    };
+
+    function processPaginationUI(totalItemsCount) {
+        const totalPages = Math.ceil(totalItemsCount / itemsPerPage) || 1;
+        if(currentPage > totalPages) currentPage = totalPages;
+        
+        document.getElementById('pageInfoDetails').innerText = `Page ${currentPage} of ${totalPages}`;
+        document.getElementById('btnPrevPage').disabled = (currentPage === 1);
+        document.getElementById('btnNextPage').disabled = (currentPage === totalPages);
+
+        if(totalItemsCount <= itemsPerPage) {
+            document.getElementById('paginationModule').classList.add('hidden');
+        } else {
+            document.getElementById('paginationModule').classList.remove('hidden');
+        }
     }
 
     // --- AUTH BACKEND ROUTINES ---
@@ -720,14 +789,17 @@
         const q = parseInt(document.getElementById('m_qty').value) || 0;
         const details = document.getElementById('m_pDetails').value;
 
-        // Bundle updated configuration states including mutated active image arrays
-        const payload = { name, category, status, date, buy: b, sell: s, qty: q, details, images: editModalBase64Images, profit: (s - b) * q };
+        const payload = { name, category, status, date, buy: b, sell: s, qty: q, details, images: editBase64Images, profit: (s - b) * q };
         
-        update(ref(db, 'inventory/' + id), payload).then(() => { window.closeEditModal(); });
+        update(ref(db, 'inventory/' + id), payload).then(() => { 
+            alert("Cloud Record Updated Successfully!");
+            window.closeEditModal(); 
+        });
     };
 
     // --- LIVE FILTER CONTROLS ---
     document.getElementById('searchBar').oninput = (e) => {
+        currentPage = 1; 
         const val = e.target.value.toLowerCase();
         const filtered = fullData.filter(i => 
             i.name.toLowerCase().includes(val) || 
@@ -768,12 +840,21 @@
 
     // --- CONDITIONAL VIEWPORTS ROUTING ENGINE ---
     function filterAndRenderLayouts(items) {
+        // Date sorting descending
+        items.sort((a,b) => new Date(b.date) - new Date(a.date));
+
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+
         if(currentRole === 'admin') {
-            renderAdminTable(items);
+            processPaginationUI(items.length);
+            const paginatedItems = items.slice(startIndex, endIndex);
+            renderAdminTable(paginatedItems);
         } else {
-            // CRITICAL HIDE ENGINE RULE: Quantities 1-100k AND status MUST NOT be 'sold'
             const publicAvailableItems = items.filter(i => i.qty >= 1 && i.qty <= 100000 && i.status !== 'sold');
-            renderGuestCatalog(publicAvailableItems);
+            processPaginationUI(publicAvailableItems.length);
+            const paginatedItems = publicAvailableItems.slice(startIndex, endIndex);
+            renderGuestCatalog(paginatedItems);
         }
     }
 
@@ -781,7 +862,7 @@
         const tbody = document.getElementById('inventoryBody');
         tbody.innerHTML = '';
         
-        data.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(i => {
+        data.forEach(i => {
             const row = tbody.insertRow();
             let imageSection = '';
             if(i.images && i.images.length > 0){
