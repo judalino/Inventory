@@ -7,7 +7,7 @@
     
     <script src="https://unpkg.com/html5-qrcode"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
         :root {
@@ -116,11 +116,27 @@
         .btn-info { background: var(--info); color: white; padding: 8px 12px; }
         .btn-warning { background: var(--warning); color: white; padding: 8px 12px; }
 
-        /* Table Styling */
+        /* Table Styling (Admin View) */
         .table-container { background: white; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; }
         table { width: 100%; border-collapse: collapse; }
         th { background: #f1f5f9; padding: 15px; text-align: left; font-size: 0.85rem; color: var(--text-muted); }
         td { padding: 15px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+
+        /* Product Catalog Grid (Guest View) */
+        .catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; margin-top: 20px; }
+        .catalog-card { 
+            background: white; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); transition: transform 0.2s, box-shadow 0.2s; cursor: pointer;
+        }
+        .catalog-card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0,0,0,0.08); }
+        .catalog-img-frame { width: 100%; height: 200px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;}
+        .catalog-img-frame img { width: 100%; height: 100%; object-fit: cover; }
+        .catalog-img-placeholder { color: #94a3b8; font-size: 3rem; }
+        .catalog-info { padding: 20px; }
+        .catalog-title { font-size: 1.1rem; font-weight: 700; margin: 0 0 8px 0; color: var(--text-main); }
+        .catalog-desc { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .catalog-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f1f5f9; padding-top: 15px; }
+        .catalog-price { font-size: 1.25rem; font-weight: 700; color: var(--primary); }
 
         /* Badge design */
         .badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
@@ -128,7 +144,7 @@
 
         /* Photo Previews */
         .preview-container { display: flex; gap: 10px; margin-top: 10px; }
-        .preview-img { width: 60px; height: 60px; border-radius: 6px; object-fit: cover; border: 1px solid #cbd5e1; }
+        .preview-img { width: 60px; height: 60px; border-radius: 6px; object-fit: cover; border: 1px solid #cbd5e1; cursor: pointer; }
 
         /* Modal Styling */
         .modal-overlay {
@@ -138,10 +154,15 @@
         }
         .modal-card {
             background: white; padding: 30px; border-radius: 20px;
-            width: 90%; max-width: 600px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            width: 90%; max-width: 650px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            max-height: 90vh; overflow-y: auto;
         }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted); }
+
+        /* Detail View Modal Elements */
+        .modal-gallery { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        .main-modal-img { width: 100%; height: 300px; object-fit: contain; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; }
 
         .hidden { display: none !important; }
         
@@ -189,7 +210,7 @@
             <i class="fas fa-plus-circle"></i><span>Add Product</span>
         </div>
         <div class="nav-item" id="navList" onclick="showView('v-list', this)">
-            <i class="fas fa-boxes-stacked"></i><span>Product List</span>
+            <i class="fas fa-boxes-stacked"></i><span>Product Catalogue</span>
         </div>
         <div class="nav-item admin-only" id="navQr" onclick="showView('v-qr', this)">
             <i class="fas fa-qrcode"></i><span>QR Scanner</span>
@@ -280,27 +301,33 @@
         </div>
     </section>
 
-    <!-- Comprehensive Product List (Shared/Adaptive View) -->
+    <!-- Comprehensive Product List / Catalog View -->
     <section id="v-list" class="view-section">
         <h1 id="listHeader">Cloud Inventory List</h1>
         <div class="search-container" style="margin-bottom: 20px;">
             <input type="text" id="searchBar" placeholder="Search product catalogue or specs..." style="max-width: 400px;">
         </div>
-        <div class="table-container">
+        
+        <!-- Admin Table Element Layout -->
+        <div id="adminTableContainer" class="table-container admin-only">
             <table>
                 <thead>
                     <tr>
                         <th>Product Details</th>
-                        <th class="admin-only">Pricing Metric</th>
+                        <th>Cost Price</th>
+                        <th>Sale Price</th>
                         <th>Category</th>
                         <th>Date Stocked</th>
                         <th>Status / Qty</th>
-                        <th id="thActions">Actions</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody id="inventoryBody"></tbody>
             </table>
         </div>
+
+        <!-- Guest Graphic Display Card Layout -->
+        <div id="guestCatalogContainer" class="catalog-grid hidden"></div>
     </section>
 
     <!-- QR Scanner View -->
@@ -318,9 +345,9 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Timestamp</th>
-                        <th>Product</th>
-                        <th>Margin</th>
+                        <th>Timestamp / Date</th>
+                        <th>Product Name</th>
+                        <th>Net Margin Assessment</th>
                     </tr>
                 </thead>
                 <tbody id="historyBody"></tbody>
@@ -338,7 +365,7 @@
     </section>
 </main>
 
-<!-- Edit Modal Framework -->
+<!-- Edit Modal Framework (Admin Only) -->
 <div id="editModal" class="modal-overlay hidden">
     <div class="modal-card">
         <div class="modal-header">
@@ -384,12 +411,34 @@
     </div>
 </div>
 
+<!-- Product Details Modal (Guest Interactive Screen) -->
+<div id="detailsModal" class="modal-overlay hidden">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3 id="d_pName" style="margin:0; font-size: 1.4rem;">Product Specifications</h3>
+            <button class="close-btn" onclick="closeDetailsModal()">&times;</button>
+        </div>
+        <div class="modal-gallery">
+            <img id="d_mainImg" src="" class="main-modal-img" alt="Product view display">
+            <div id="d_thumbContainer" class="preview-container"></div>
+        </div>
+        <div style="margin-bottom: 20px;">
+            <span id="d_pCategory" class="badge badge-primary" style="margin-bottom:10px;">Category</span>
+            <div style="font-size: 1.5rem; font-weight:700; color: var(--primary); margin: 5px 0 15px 0;" id="d_pPrice">₱0.00</div>
+            <h4 style="margin:0 0 8px 0; font-size:0.95rem; color: var(--text-muted)">Description & Specifications</h4>
+            <p id="d_pDetails" style="margin:0; font-size:0.95rem; line-height:1.6; color:var(--text-main); background:#f8fafc; padding:15px; border-radius:8px; border:1px solid #e2e8f0; white-space: pre-wrap;"></p>
+        </div>
+        <button class="btn btn-primary" id="buyBtn" style="width: 100%; padding: 15px; font-size:1.05rem; background-color: #10b981;">
+            <i class="fa-solid fa-cart-shopping" style="margin-right:10px;"></i>Buy Now / Send Gmail Inquiry
+        </button>
+    </div>
+</div>
+
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getDatabase, ref, set, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
     import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    // Configuration payload array mappings
     const firebaseConfig = {
         apiKey: "AIzaSyCaU8ZlDt3iWsqMnLzmMF2cwe_Zj6Ls72A",
         authDomain: "jsh2tech-inventory-e8b34.firebaseapp.com",
@@ -407,7 +456,7 @@
 
     let fullData = [];
     let isLogin = true;
-    let currentRole = 'guest'; // track current dashboard execution role: 'admin' | 'guest'
+    let currentRole = 'guest'; 
     let currentBase64Images = [];
 
     // --- PHOTO PROCESSING LOGIC ---
@@ -434,17 +483,20 @@
     function configureUIVisibility() {
         if(currentRole === 'admin') {
             document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
+            document.getElementById('adminTableContainer').classList.remove('hidden');
+            document.getElementById('guestCatalogContainer').classList.add('hidden');
             document.getElementById('sidebarBrand').innerText = "JSH2Tech Admin";
             document.getElementById('listHeader').innerText = "Inventory Management Workspace";
-            document.getElementById('thActions').innerText = "Actions";
             showView('v-dash', document.getElementById('navDash'));
         } else {
             document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden'));
-            document.getElementById('sidebarBrand').innerText = "JSH2Tech Portal";
-            document.getElementById('listHeader').innerText = "Public Product Catalogue";
-            document.getElementById('thActions').innerText = "Inquiries";
+            document.getElementById('adminTableContainer').classList.add('hidden');
+            document.getElementById('guestCatalogContainer').classList.remove('hidden');
+            document.getElementById('sidebarBrand').innerText = "JSH2Tech Catalog";
+            document.getElementById('listHeader').innerText = "Available Product Catalogue";
             showView('v-list', document.getElementById('navList'));
         }
+        filterAndRenderLayouts(fullData);
     }
 
     document.getElementById('guestBtn').onclick = () => {
@@ -498,14 +550,54 @@
         document.getElementById('editModal').classList.add('hidden');
     };
 
-    window.sendInquiry = (name, category, qty) => {
-        const recipient = "sales@jsh2tech.com"; // Configure fallback commercial destination desk
-        const subject = encodeURIComponent(`Product Inquiry: ${name} (${category})`);
-        const body = encodeURIComponent(`Hello JSH2Tech Team,\n\nI am interested in acquiring your product unit listed in the system portal:\n\nProduct Name: ${name}\nCategory: ${category}\nCurrent Stock Availability: ${qty} units\n\nPlease let me know your dynamic pricing matrix schedules, unit variations, and options for distribution shipping.\n\nBest regards.`);
-        
-        const gmailLink = `https://mail.google.com/mail/?view=cm&fs=1&to=${recipient}&su=${subject}&body=${body}`;
-        window.open(gmailLink, '_blank');
+    // --- INTERACTIVE DETAILS VIEW MODAL FOR GUESTS ---
+    window.openDetailsModal = (id) => {
+        const item = fullData.find(x => x.id === id);
+        if(!item) return;
+
+        document.getElementById('d_pName').innerText = item.name || 'Product Details';
+        document.getElementById('d_pCategory').innerText = item.category || 'Unassigned';
+        document.getElementById('d_pPrice').innerText = "₱" + (item.sell || 0).toLocaleString(undefined, {minimumFractionDigits: 2});
+        document.getElementById('d_pDetails').innerText = item.details || 'No catalog specifications provided.';
+
+        const mainImg = document.getElementById('d_mainImg');
+        const thumbContainer = document.getElementById('d_thumbContainer');
+        thumbContainer.innerHTML = '';
+
+        if(item.images && item.images.length > 0) {
+            mainImg.src = item.images[0];
+            mainImg.classList.remove('hidden');
+            
+            item.images.forEach((imgBase64, index) => {
+                const thumb = document.createElement('img');
+                thumb.src = imgBase64;
+                thumb.classList.add('preview-img');
+                thumb.onclick = () => { mainImg.src = imgBase64; };
+                thumbContainer.appendChild(thumb);
+            });
+        } else {
+            mainImg.src = '';
+            mainImg.classList.add('hidden');
+        }
+
+        document.getElementById('buyBtn').onclick = () => {
+            sendPurchaseInquiry(item.name, item.category, item.sell);
+        };
+
+        document.getElementById('detailsModal').classList.remove('hidden');
     };
+
+    window.closeDetailsModal = () => {
+        document.getElementById('detailsModal').classList.add('hidden');
+    };
+
+    function sendPurchaseInquiry(name, category, price) {
+        const recipient = "hopeband22@gmail.com";
+        const subject = encodeURIComponent(`Purchase Inquiry Order: ${name}`);
+        const body = encodeURIComponent(`Hello JSH2Tech,\n\nI want to purchase the following item found on your catalog:\n\nProduct Name: ${name}\nCategory: ${category}\nListed Price: ₱${(price || 0).toLocaleString()}\n\nPlease verify availability and provide payment details.\n\nThank you!`);
+        
+        window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${recipient}&su=${subject}&body=${body}`, '_blank');
+    }
 
     // --- AUTH BACKEND ROUTINES ---
     const authBtn = document.getElementById('authBtn');
@@ -540,7 +632,6 @@
         }
     });
 
-    // --- ENGINE STORAGE SYNC ---
     function initDataSync() {
         onValue(inventoryRef, (snap) => {
             const data = snap.val();
@@ -550,7 +641,7 @@
         });
     }
 
-    // --- REGISTER NEW ASSET DATA RECORD ---
+    // --- DATA MUTATION ACTIONS ---
     document.getElementById('actionBtn').onclick = () => {
         const name = document.getElementById('pName').value;
         const category = document.getElementById('pCategory').value;
@@ -560,19 +651,9 @@
         const q = parseInt(document.getElementById('qty').value) || 0;
         const details = document.getElementById('pDetails').value;
 
-        if(!name || isNaN(b)) return alert("Please clarify execution mapping correctly.");
+        if(!name) return alert("Please specify a valid product name.");
         
-        const payload = { 
-            name, 
-            category, 
-            date, 
-            buy: b, 
-            sell: s, 
-            qty: q, 
-            details,
-            images: currentBase64Images,
-            profit: (s - b) * q 
-        };
+        const payload = { name, category, date, buy: b, sell: s, qty: q, details, images: currentBase64Images, profit: (s - b) * q };
         
         push(inventoryRef, payload).then(() => {
             alert("Stock Cloud Registry Complete!");
@@ -583,7 +664,6 @@
         });
     };
 
-    // --- EDIT WRITEBACK ACTIONS ---
     document.getElementById('saveEditBtn').onclick = () => {
         const id = document.getElementById('m_editId').value;
         const name = document.getElementById('m_pName').value;
@@ -596,31 +676,29 @@
 
         const payload = { name, category, date, buy: b, sell: s, qty: q, details, profit: (s - b) * q };
         
-        update(ref(db, 'inventory/' + id), payload).then(() => {
-            window.closeEditModal();
-        });
+        update(ref(db, 'inventory/' + id), payload).then(() => { window.closeEditModal(); });
     };
 
-    // --- PIPELINE FILTER SEARCHING ---
+    // --- LIVE FILTER CONTROLS ---
     document.getElementById('searchBar').oninput = (e) => {
         const val = e.target.value.toLowerCase();
-        renderTable(fullData.filter(i => 
+        const filtered = fullData.filter(i => 
             i.name.toLowerCase().includes(val) || 
             (i.details && i.details.toLowerCase().includes(val)) ||
             i.category.toLowerCase().includes(val)
-        ));
+        );
+        filterAndRenderLayouts(filtered);
     };
 
-    // --- RENDER DOM OBJECTS ---
     function renderDashboard() {
-        renderTable(fullData);
+        filterAndRenderLayouts(fullData);
         renderHistory(fullData);
         
         let pos = 0, neg = 0, monthly = {};
         fullData.forEach(i => {
             const p = i.profit || 0;
             if(p >= 0) pos += p; else neg += p;
-            const d = new Date(i.date);
+            const d = new Date(i.date || Date.now());
             const key = d.getFullYear() + "-" + (d.getMonth()+1);
             if(!monthly[key]) monthly[key] = { p: 0, label: d.toLocaleString('default', {month:'short', year:'2-digit'}) };
             monthly[key].p += p;
@@ -641,53 +719,83 @@
         });
     }
 
-    function renderTable(data) {
+    // --- CONDITIONAL VIEWPORTS ROUTING ENGINE ---
+    function filterAndRenderLayouts(items) {
+        if(currentRole === 'admin') {
+            renderAdminTable(items);
+        } else {
+            // Apply restrictions: Available quantities from 1 to 100,000 only
+            const publicAvailableItems = items.filter(i => i.qty >= 1 && i.qty <= 100000);
+            renderGuestCatalog(publicAvailableItems);
+        }
+    }
+
+    function renderAdminTable(data) {
         const tbody = document.getElementById('inventoryBody');
         tbody.innerHTML = '';
         
         data.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(i => {
             const row = tbody.insertRow();
-            
-            // Build dynamic image string elements
             let imageSection = '';
             if(i.images && i.images.length > 0){
                 imageSection = `<div class="preview-container" style="margin-bottom:8px;">`;
                 i.images.forEach(imgBase64 => {
-                    imageSection += `<img src="${imgBase64}" class="preview-img" style="width:45px; height:45px;" />`;
+                    imageSection += `<img src="${imgBase64}" class="preview-img" style="width:40px; height:40px;" />`;
                 });
                 imageSection += `</div>`;
             }
-
-            // Variable structural cells based on administrative identity privileges
-            const costCellHtml = (currentRole === 'admin') ? `<td>₱${i.buy}</td>` : '';
-            const actionButtonHtml = (currentRole === 'admin') ? `
-                <td>
-                    <button class="btn" style="background:#f1f5f9; color:var(--warning); margin-bottom:4px;" onclick="editItem('${i.id}')"><i class="fas fa-edit"></i></button>
-                    <button class="btn" style="background:#f1f5f9; color:var(--danger);" onclick="deleteItem('${i.id}')"><i class="fas fa-trash"></i></button>
-                </td>` : `
-                <td>
-                    <button class="btn btn-primary" style="font-size:0.8rem; background-color: #0ea5e9; padding:8px 12px;" onclick="sendInquiry('${i.name}', '${i.category}', ${i.qty})">
-                        <i class="form-icon fa-envelope fas" style="margin-right:6px;"></i>Inquire via Gmail
-                    </button>
-                </td>`;
 
             row.innerHTML = `
                 <td>
                     ${imageSection}
                     <strong>${i.name}</strong><br>
-                    <small style="color:var(--text-muted); display:block; max-width:350px; margin-top:4px;">${i.details || 'No catalog specifications provided.'}</small>
+                    <small style="color:var(--text-muted); display:block; max-width:300px;">${i.details || 'No catalog details.'}</small>
                 </td>
-                ${costCellHtml}
+                <td>₱${(i.buy || 0).toLocaleString()}</td>
+                <td>₱${(i.sell || 0).toLocaleString()}</td>
                 <td><span class="badge badge-primary">${i.category || 'Unassigned'}</span></td>
                 <td>${i.date || '---'}</td>
+                <td><strong>${i.qty} Units</strong></td>
                 <td>
-                    <strong>${i.qty} Units</strong><br>
-                    <span style="font-size:0.85rem; color:${i.qty > 0 ? 'var(--success)' : 'var(--danger)'}">
-                        ${i.qty > 0 ? 'In Stock' : 'Out of Stock'}
-                    </span>
+                    <button class="btn" style="background:#f1f5f9; color:var(--warning); padding:6px 10px; margin-bottom:2px;" onclick="editItem('${i.id}')"><i class="fas fa-edit"></i></button>
+                    <button class="btn" style="background:#f1f5f9; color:var(--danger); padding:6px 10px;" onclick="deleteItem('${i.id}')"><i class="fas fa-trash"></i></button>
                 </td>
-                ${actionButtonHtml};
             `;
+        });
+    }
+
+    function renderGuestCatalog(data) {
+        const container = document.getElementById('guestCatalogContainer');
+        container.innerHTML = '';
+
+        if(data.length === 0) {
+            container.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 40px;">No match found matching your filters.</p>`;
+            return;
+        }
+
+        data.forEach(i => {
+            const card = document.createElement('div');
+            card.classList.add('catalog-card');
+            card.onclick = () => openDetailsModal(i.id);
+
+            let imgTag = `<div class="catalog-img-placeholder"><i class="fa-regular fa-image"></i></div>`;
+            if(i.images && i.images.length > 0) {
+                imgTag = `<img src="${i.images[0]}" alt="Product catalog cover">`;
+            }
+
+            card.innerHTML = `
+                <div class="catalog-img-frame">${imgTag}</div>
+                <div class="catalog-info">
+                    <span class="badge badge-primary" style="margin-bottom: 8px;">${i.category || 'Product'}</span>
+                    <h3 class="catalog-title">${i.name}</h3>
+                    <p class="catalog-desc">${i.details || 'Click to view complete configurations and technical details.'}</p>
+                    <div class="catalog-footer">
+                        <div class="catalog-price">₱${(i.sell || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}</div>
+                        <span style="font-size: 0.8rem; font-weight:600; color: var(--success);"><i class="fa-solid fa-circle-check"></i> Available</span>
+                    </div>
+                </div>
+            `;
+            container.appendChild(card);
         });
     }
 
@@ -695,33 +803,17 @@
         const hbody = document.getElementById('historyBody');
         if(!hbody) return;
         hbody.innerHTML = '';
+        
         data.slice(0, 15).forEach(i => {
             const row = hbody.insertRow();
-            row.innerHTML = `<td>${i.date}</td><td>${i.name}</td><td style="color:${i.profit >= 0 ? 'var(--success)' : 'var(--danger)'}">₱${i.profit.toLocaleString()}</td>`;
+            const profitVal = i.profit || 0;
+            row.innerHTML = `
+                <td>${i.date || 'N/A'}</td>
+                <td><strong>${i.name}</strong><br><small style="color:var(--text-muted)">Qty: ${i.qty}</small></td>
+                <td style="color: ${profitVal >= 0 ? 'var(--success)' : 'var(--danger)'}; font-weight:600;">₱${profitVal.toLocaleString()}</td>
+            `;
         });
     }
 </script>
-
-<script>
-    let qrScanner;
-    function startScanner() {
-        qrScanner = new Html5Qrcode("reader");
-        qrScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
-            const p = text.split(',');
-            if(p.length >= 3) {
-                document.getElementById('pName').value = p[0].trim();
-                document.getElementById('bPrice').value = p[1].trim();
-                document.getElementById('sPrice').value = p[2].trim();
-                document.getElementById('qty').value = 1;
-                showView('v-add');
-                stopScanner();
-            }
-        }).catch(err => alert("Camera System Error: Ensure SSL/HTTPS environment validation."));
-    }
-    function stopScanner() {
-        if(qrScanner) qrScanner.stop().then(() => { document.getElementById('reader').innerHTML = ""; });
-    }
-</script>
-
 </body>
 </html>
