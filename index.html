@@ -141,6 +141,8 @@
         /* Badge design */
         .badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
         .badge-primary { background: #e0e7ff; color: #4338ca; }
+        .badge-success { background: #d1fae5; color: #065f46; }
+        .badge-danger { background: #fee2e2; color: #991b1b; }
 
         /* Photo Previews */
         .preview-container { display: flex; gap: 10px; margin-top: 10px; }
@@ -272,6 +274,13 @@
                     </select>
                 </div>
                 <div>
+                    <label style="font-size: 0.8rem; font-weight: 600;">Availability Status</label>
+                    <select id="pStatus">
+                        <option value="available">Available</option>
+                        <option value="sold">Sold</option>
+                    </select>
+                </div>
+                <div>
                     <label style="font-size: 0.8rem; font-weight: 600;">Transaction Date</label>
                     <input type="date" id="pDate">
                 </div>
@@ -359,7 +368,7 @@
     <section id="v-about" class="view-section">
         <h1>About JSH2Tech</h1>
         <div class="form-card">
-            <p><strong>Version:</strong> 3.0 (Enterprise OpenAccess Edition)</p>
+            <p><strong>Version:</strong> 3.1 (Enterprise OpenAccess Edition)</p>
             <p>JSH2Tech Cloud Inventory provides dynamic synchronization for admins and effortless communication pipelines for commercial buyers and clients.</p>
         </div>
     </section>
@@ -383,6 +392,13 @@
                     <option value="Laptop">Laptop</option>
                     <option value="Ram">RAM</option>
                     <option value="Storage">Storage</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-size: 0.8rem;">Catalog Status</label>
+                <select id="m_pStatus">
+                    <option value="available">Available</option>
+                    <option value="sold">Sold</option>
                 </select>
             </div>
             <div>
@@ -537,6 +553,7 @@
         document.getElementById('m_editId').value = id;
         document.getElementById('m_pName').value = item.name || '';
         document.getElementById('m_pCategory').value = item.category || 'Laptop';
+        document.getElementById('m_pStatus').value = item.status || 'available';
         document.getElementById('m_pDate').value = item.date || '';
         document.getElementById('m_qty').value = item.qty || 0;
         document.getElementById('m_bPrice').value = item.buy || 0;
@@ -645,6 +662,7 @@
     document.getElementById('actionBtn').onclick = () => {
         const name = document.getElementById('pName').value;
         const category = document.getElementById('pCategory').value;
+        const status = document.getElementById('pStatus').value;
         const date = document.getElementById('pDate').value;
         const b = parseFloat(document.getElementById('bPrice').value) || 0;
         const s = parseFloat(document.getElementById('sPrice').value) || 0;
@@ -653,12 +671,13 @@
 
         if(!name) return alert("Please specify a valid product name.");
         
-        const payload = { name, category, date, buy: b, sell: s, qty: q, details, images: currentBase64Images, profit: (s - b) * q };
+        const payload = { name, category, status, date, buy: b, sell: s, qty: q, details, images: currentBase64Images, profit: (s - b) * q };
         
         push(inventoryRef, payload).then(() => {
             alert("Stock Cloud Registry Complete!");
             document.querySelectorAll('#v-add input').forEach(i => i.value = '');
             document.getElementById('pDetails').value = '';
+            document.getElementById('pStatus').value = 'available';
             document.getElementById('photoPreviewContainer').innerHTML = '';
             currentBase64Images = [];
         });
@@ -668,13 +687,14 @@
         const id = document.getElementById('m_editId').value;
         const name = document.getElementById('m_pName').value;
         const category = document.getElementById('m_pCategory').value;
+        const status = document.getElementById('m_pStatus').value;
         const date = document.getElementById('m_pDate').value;
         const b = parseFloat(document.getElementById('m_bPrice').value) || 0;
         const s = parseFloat(document.getElementById('m_sPrice').value) || 0;
         const q = parseInt(document.getElementById('m_qty').value) || 0;
         const details = document.getElementById('m_pDetails').value;
 
-        const payload = { name, category, date, buy: b, sell: s, qty: q, details, profit: (s - b) * q };
+        const payload = { name, category, status, date, buy: b, sell: s, qty: q, details, profit: (s - b) * q };
         
         update(ref(db, 'inventory/' + id), payload).then(() => { window.closeEditModal(); });
     };
@@ -724,8 +744,8 @@
         if(currentRole === 'admin') {
             renderAdminTable(items);
         } else {
-            // Apply restrictions: Available quantities from 1 to 100,000 only
-            const publicAvailableItems = items.filter(i => i.qty >= 1 && i.qty <= 100000);
+            // CRITICAL HIDE ENGINE RULE: Quantities 1-100k AND status MUST NOT be 'sold'
+            const publicAvailableItems = items.filter(i => i.qty >= 1 && i.qty <= 100000 && i.status !== 'sold');
             renderGuestCatalog(publicAvailableItems);
         }
     }
@@ -745,6 +765,10 @@
                 imageSection += `</div>`;
             }
 
+            const statusLabel = (i.status === 'sold') ? 
+                `<span class="badge badge-danger">Sold Out</span>` : 
+                `<span class="badge badge-success">In Stock</span>`;
+
             row.innerHTML = `
                 <td>
                     ${imageSection}
@@ -755,7 +779,10 @@
                 <td>₱${(i.sell || 0).toLocaleString()}</td>
                 <td><span class="badge badge-primary">${i.category || 'Unassigned'}</span></td>
                 <td>${i.date || '---'}</td>
-                <td><strong>${i.qty} Units</strong></td>
+                <td>
+                    <strong>${i.qty} Units</strong><br>
+                    <div style="margin-top: 4px;">${statusLabel}</div>
+                </td>
                 <td>
                     <button class="btn" style="background:#f1f5f9; color:var(--warning); padding:6px 10px; margin-bottom:2px;" onclick="editItem('${i.id}')"><i class="fas fa-edit"></i></button>
                     <button class="btn" style="background:#f1f5f9; color:var(--danger); padding:6px 10px;" onclick="deleteItem('${i.id}')"><i class="fas fa-trash"></i></button>
@@ -769,7 +796,7 @@
         container.innerHTML = '';
 
         if(data.length === 0) {
-            container.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 40px;">No match found matching your filters.</p>`;
+            container.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 40px;">No available stock matching your search filters.</p>`;
             return;
         }
 
