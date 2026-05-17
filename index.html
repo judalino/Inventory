@@ -134,7 +134,7 @@
         .catalog-img-placeholder { color: #94a3b8; font-size: 3rem; }
         .catalog-info { padding: 20px; }
         .catalog-title { font-size: 1.1rem; font-weight: 700; margin: 0 0 8px 0; color: var(--text-main); }
-        .catalog-desc { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .catalog-desc { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; word-break: break-word; }
         .catalog-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f1f5f9; padding-top: 15px; }
         .catalog-price { font-size: 1.25rem; font-weight: 700; color: var(--primary); }
 
@@ -343,8 +343,43 @@
 
     <section id="v-list" class="view-section">
         <h1 id="listHeader">Cloud Inventory List</h1>
-        <div class="search-container" style="margin-bottom: 20px;">
-            <input type="text" id="searchBar" placeholder="Search product catalogue or specs..." style="max-width: 400px;">
+        
+        <div class="search-container" style="margin-bottom: 25px; display: flex; flex-direction: column; gap: 15px;">
+            <input type="text" id="searchBar" placeholder="Search product catalogue or specs..." style="max-width: 400px; margin: 0;">
+            
+            <div class="filter-pills-group" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+                <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);"><i class="fa-solid fa-filter"></i> Filter Specs:</span>
+                
+                <div style="width: 130px;">
+                    <select id="filterCpu" style="padding: 6px 10px; font-size: 0.85rem;">
+                        <option value="">All CPUs</option>
+                        <option value="i7">Core i7</option>
+                        <option value="i5">Core i5</option>
+                        <option value="Xeon">Xeon</option>
+                        <option value="AMD">AMD Ryzen</option>
+                    </select>
+                </div>
+
+                <div style="width: 130px;">
+                    <select id="filterRam" style="padding: 6px 10px; font-size: 0.85rem;">
+                        <option value="">All RAM</option>
+                        <option value="8GB">8GB</option>
+                        <option value="16GB">16GB</option>
+                        <option value="32GB">32GB</option>
+                    </select>
+                </div>
+
+                <div style="width: 130px;">
+                    <select id="filterScreen" style="padding: 6px 10px; font-size: 0.85rem;">
+                        <option value="">All Sizes</option>
+                        <option value="14">14" Display</option>
+                        <option value="15.6">15.6" Display</option>
+                        <option value="17.3">17.3" Unit</option>
+                    </select>
+                </div>
+                
+                <button id="btnClearFilters" class="btn" style="background: #e2e8f0; color: var(--text-main); padding: 6px 15px; font-size: 0.85rem; border-radius: 8px; font-weight:600;">Clear</button>
+            </div>
         </div>
         
         <div id="adminTableContainer" class="table-container admin-only">
@@ -574,7 +609,7 @@
             document.getElementById('listHeader').innerText = "Available Product Catalogue";
             showView('v-list', document.getElementById('navList'));
         }
-        filterAndRenderLayouts(fullData);
+        executeAdvancedFilter();
     }
 
     document.getElementById('guestBtn').onclick = () => {
@@ -693,7 +728,7 @@
     // --- PAGINATION INTERACTIVE CONTROLS ---
     window.navigatePage = (direction) => {
         currentPage += direction;
-        filterAndRenderLayouts(fullData);
+        executeAdvancedFilter();
     };
 
     function processPaginationUI(totalItemsCount) {
@@ -797,20 +832,52 @@
         });
     };
 
-    // --- LIVE FILTER CONTROLS ---
-    document.getElementById('searchBar').oninput = (e) => {
-        currentPage = 1; 
-        const val = e.target.value.toLowerCase();
-        const filtered = fullData.filter(i => 
-            i.name.toLowerCase().includes(val) || 
-            (i.details && i.details.toLowerCase().includes(val)) ||
-            i.category.toLowerCase().includes(val)
-        );
+    // --- ADVANCED LIVE SEARCH & MULTI-SPEC FILTER CONTROLS ---
+    function executeAdvancedFilter() {
+        const textSearchVal = document.getElementById('searchBar').value.toLowerCase();
+        const cpuFilterVal = document.getElementById('filterCpu').value.toLowerCase();
+        const ramFilterVal = document.getElementById('filterRam').value.toLowerCase();
+        const screenFilterVal = document.getElementById('filterScreen').value.toLowerCase();
+
+        const filtered = fullData.filter(item => {
+            const itemName = (item.name || '').toLowerCase();
+            const itemDetails = (item.details || '').toLowerCase();
+            const itemCategory = (item.category || '').toLowerCase();
+
+            // 1. Text Search verification across Name, Specifications, and Category
+            const matchesText = itemName.includes(textSearchVal) || 
+                                itemDetails.includes(textSearchVal) || 
+                                itemCategory.includes(textSearchVal);
+
+            // 2. Hardware Spec Pill dropdown parameter verification
+            const matchesCpu = !cpuFilterVal || itemName.includes(cpuFilterVal) || itemDetails.includes(cpuFilterVal);
+            const matchesRam = !ramFilterVal || itemName.includes(ramFilterVal) || itemDetails.includes(ramFilterVal);
+            const matchesScreen = !screenFilterVal || itemName.includes(screenFilterVal) || itemDetails.includes(screenFilterVal);
+
+            return matchesText && matchesCpu && matchesRam && matchesScreen;
+        });
+
         filterAndRenderLayouts(filtered);
+    }
+
+    // Event hooks targeting search inputs and spec selectors concurrently
+    document.getElementById('searchBar').oninput = () => { currentPage = 1; executeAdvancedFilter(); };
+    document.getElementById('filterCpu').onchange = () => { currentPage = 1; executeAdvancedFilter(); };
+    document.getElementById('filterRam').onchange = () => { currentPage = 1; executeAdvancedFilter(); };
+    document.getElementById('filterScreen').onchange = () => { currentPage = 1; executeAdvancedFilter(); };
+
+    // Clear filters action reset handler
+    document.getElementById('btnClearFilters').onclick = () => {
+        document.getElementById('searchBar').value = '';
+        document.getElementById('filterCpu').value = '';
+        document.getElementById('filterRam').value = '';
+        document.getElementById('filterScreen').value = '';
+        currentPage = 1;
+        filterAndRenderLayouts(fullData);
     };
 
     function renderDashboard() {
-        filterAndRenderLayouts(fullData);
+        executeAdvancedFilter();
         renderHistory(fullData);
         
         let pos = 0, neg = 0, monthly = {};
