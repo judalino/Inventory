@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JSH2Tech | Cloud Inventory Dashboard</title>
+    <title>JSH2Tech | Cloud Inventory & Inquiry Dashboard</title>
     
     <script src="https://unpkg.com/html5-qrcode"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -21,6 +21,7 @@
             --success: #10b981;
             --danger: #ef4444;
             --warning: #f59e0b;
+            --info: #06b6d4;
         }
 
         * { box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -100,11 +101,11 @@
         .form-card { background: white; padding: 30px; border-radius: 16px; border: 1px solid #e2e8f0; max-width: 800px; }
         .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .full-width { grid-column: span 2; }
-        input {
+        input, select, textarea {
             width: 100%; padding: 12px 15px; border-radius: 8px;
-            border: 1px solid #e2e8f0; outline: none; transition: 0.2s;
+            border: 1px solid #e2e8f0; outline: none; transition: 0.2s; font-size: 0.95rem;
         }
-        input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
+        input:focus, select:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
         .btn {
             padding: 12px 25px; border-radius: 8px; border: none; font-weight: 600;
             cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center;
@@ -112,12 +113,22 @@
         .btn-primary { background: var(--primary); color: white; }
         .btn-primary:hover { background: var(--primary-dark); }
         .btn-danger { background: var(--danger); color: white; padding: 8px 12px; }
+        .btn-info { background: var(--info); color: white; padding: 8px 12px; }
+        .btn-warning { background: var(--warning); color: white; padding: 8px 12px; }
 
         /* Table Styling */
         .table-container { background: white; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; }
         table { width: 100%; border-collapse: collapse; }
         th { background: #f1f5f9; padding: 15px; text-align: left; font-size: 0.85rem; color: var(--text-muted); }
-        td { padding: 15px; border-bottom: 1px solid #f1f5f9; }
+        td { padding: 15px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+
+        /* Badge design */
+        .badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+        .badge-primary { background: #e0e7ff; color: #4338ca; }
+
+        /* Photo Previews */
+        .preview-container { display: flex; gap: 10px; margin-top: 10px; }
+        .preview-img { width: 60px; height: 60px; border-radius: 6px; object-fit: cover; border: 1px solid #cbd5e1; }
 
         /* Modal Styling */
         .modal-overlay {
@@ -145,46 +156,54 @@
 </head>
 <body>
 
-<!-- Authentication -->
+<!-- Authentication & Gateway Screen -->
 <div id="authSection">
     <div class="auth-card">
-        <h2 id="authTitle" style="margin-bottom: 10px;">Cloud Login</h2>
-        <p style="color: var(--text-muted); margin-bottom: 25px;">Enter your admin credentials</p>
-        <input type="email" id="authEmail" placeholder="Email Address">
-        <input type="password" id="authPwd" placeholder="Password" style="margin-top: 10px;">
-        <button class="btn btn-primary" id="authBtn" style="width: 100%; margin-top: 20px;">Sign In</button>
-        <p style="text-align: center; margin-top: 20px; font-size: 0.9rem;">
-            <a href="#" id="toggleAuth" style="color: var(--primary); text-decoration: none;">Request Admin Access</a>
-        </p>
+        <h2 id="authTitle" style="margin-bottom: 5px;">JSH2Tech Portal</h2>
+        <p style="color: var(--text-muted); margin-bottom: 25px;" id="authDesc">Enter admin credentials or open public view.</p>
+        
+        <div id="credentialsForm">
+            <input type="email" id="authEmail" placeholder="Email Address">
+            <input type="password" id="authPwd" placeholder="Password" style="margin-top: 10px;">
+            <button class="btn btn-primary" id="authBtn" style="width: 100%; margin-top: 20px;">Sign In as Admin</button>
+            <p style="text-align: center; margin-top: 15px; font-size: 0.9rem;">
+                <a href="#" id="toggleAuth" style="color: var(--primary); text-decoration: none;">Request Admin Access</a>
+            </p>
+        </div>
+
+        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e2e8f0; text-align: center;">
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">Looking for parts or systems?</p>
+            <button class="btn btn-info" id="guestBtn" style="width: 100%; background-color: #0284c7;"><i class="fas fa-eye" style="margin-right: 8px;"></i>Open Access Dashboard</button>
+        </div>
     </div>
 </div>
 
 <!-- Navigation Sidebar -->
 <nav class="sidebar hidden" id="sidebar">
-    <div class="sidebar-header">JSH2Tech</div>
+    <div class="sidebar-header" id="sidebarBrand">JSH2Tech</div>
     <div class="nav-links">
-        <div class="nav-item active" onclick="showView('v-dash', this)">
+        <div class="nav-item admin-only active" id="navDash" onclick="showView('v-dash', this)">
             <i class="fas fa-chart-pie"></i><span>Dashboard</span>
         </div>
-        <div class="nav-item" onclick="showView('v-add', this)">
+        <div class="nav-item admin-only" id="navAdd" onclick="showView('v-add', this)">
             <i class="fas fa-plus-circle"></i><span>Add Product</span>
         </div>
-        <div class="nav-item" onclick="showView('v-list', this)">
+        <div class="nav-item" id="navList" onclick="showView('v-list', this)">
             <i class="fas fa-boxes-stacked"></i><span>Product List</span>
         </div>
-        <div class="nav-item" onclick="showView('v-qr', this)">
+        <div class="nav-item admin-only" id="navQr" onclick="showView('v-qr', this)">
             <i class="fas fa-qrcode"></i><span>QR Scanner</span>
         </div>
-        <div class="nav-item" onclick="showView('v-history', this)">
+        <div class="nav-item admin-only" id="navHist" onclick="showView('v-history', this)">
             <i class="fas fa-history"></i><span>History</span>
         </div>
-        <div class="nav-item" onclick="showView('v-about', this)">
+        <div class="nav-item" id="navAbout" onclick="showView('v-about', this)">
             <i class="fas fa-info-circle"></i><span>About Us</span>
         </div>
     </div>
     <div class="logout-area">
         <button onclick="logout()" class="btn btn-danger" style="width: 100%;">
-            <i class="fas fa-sign-out-alt" style="margin-right: 10px;"></i>Logout
+            <i class="fas fa-sign-out-alt" style="margin-right: 10px;"></i>Exit System
         </button>
     </div>
 </nav>
@@ -192,7 +211,8 @@
 <!-- Main Dashboard Content -->
 <main class="main-content hidden" id="mainContent">
     
-    <section id="v-dash" class="view-section active">
+    <!-- Admin Dashboard View -->
+    <section id="v-dash" class="view-section admin-only active">
         <h1 style="margin-top: 0;">Performance Overview</h1>
         <div class="kpi-grid">
             <div class="kpi-card" style="border-left: 5px solid var(--success);">
@@ -212,7 +232,8 @@
         <div id="monthlyGrid" class="monthly-scroll-container" style="display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px;"></div>
     </section>
 
-    <section id="v-add" class="view-section">
+    <!-- Add Product View -->
+    <section id="v-add" class="view-section admin-only">
         <h1>Inventory Management</h1>
         <div class="form-card">
             <h3 id="formTitle">Register New Stock</h3>
@@ -220,6 +241,14 @@
                 <div class="full-width">
                     <label style="font-size: 0.8rem; font-weight: 600;">Product Name</label>
                     <input type="text" id="pName" placeholder="e.g. HP EliteBook 840 G5">
+                </div>
+                <div>
+                    <label style="font-size: 0.8rem; font-weight: 600;">Category</label>
+                    <select id="pCategory">
+                        <option value="Laptop">Laptop</option>
+                        <option value="Ram">RAM</option>
+                        <option value="Storage">Storage</option>
+                    </select>
                 </div>
                 <div>
                     <label style="font-size: 0.8rem; font-weight: 600;">Transaction Date</label>
@@ -237,25 +266,36 @@
                     <label style="font-size: 0.8rem; font-weight: 600;">Sale Price (₱)</label>
                     <input type="number" id="sPrice" placeholder="0.00">
                 </div>
+                <div class="full-width">
+                    <label style="font-size: 0.8rem; font-weight: 600;">Product Photos (Max 3)</label>
+                    <input type="file" id="pPhotos" multiple accept="image/*" style="padding: 8px;">
+                    <div id="photoPreviewContainer" class="preview-container"></div>
+                </div>
+                <div class="full-width">
+                    <label style="font-size: 0.8rem; font-weight: 600;">Product Details / Specifications</label>
+                    <textarea id="pDetails" rows="3" placeholder="Enter configuration specifications, warranty structure details, and conditions details..."></textarea>
+                </div>
             </div>
             <button class="btn btn-primary" id="actionBtn" style="margin-top: 25px; width: 100%;">Save Product to Cloud</button>
         </div>
     </section>
 
+    <!-- Comprehensive Product List (Shared/Adaptive View) -->
     <section id="v-list" class="view-section">
-        <h1>Cloud Inventory List</h1>
+        <h1 id="listHeader">Cloud Inventory List</h1>
         <div class="search-container" style="margin-bottom: 20px;">
-            <input type="text" id="searchBar" placeholder="Search by product name..." style="max-width: 400px;">
+            <input type="text" id="searchBar" placeholder="Search product catalogue or specs..." style="max-width: 400px;">
         </div>
         <div class="table-container">
             <table>
                 <thead>
                     <tr>
                         <th>Product Details</th>
-                        <th>Date</th>
-                        <th>Qty</th>
-                        <th>Profit</th>
-                        <th>Actions</th>
+                        <th class="admin-only">Pricing Metric</th>
+                        <th>Category</th>
+                        <th>Date Stocked</th>
+                        <th>Status / Qty</th>
+                        <th id="thActions">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="inventoryBody"></tbody>
@@ -263,14 +303,16 @@
         </div>
     </section>
 
-    <section id="v-qr" class="view-section">
+    <!-- QR Scanner View -->
+    <section id="v-qr" class="view-section admin-only">
         <h1>Quick Stock Scan</h1>
         <p>Align the QR code within the frame to automatically fill product details.</p>
         <button class="btn btn-primary" onclick="startScanner()"><i class="fas fa-camera" style="margin-right:10px;"></i> Open Camera</button>
         <div id="reader"></div>
     </section>
 
-    <section id="v-history" class="view-section">
+    <!-- Transactions View -->
+    <section id="v-history" class="view-section admin-only">
         <h1>Transaction History</h1>
         <div class="table-container">
             <table>
@@ -286,16 +328,17 @@
         </div>
     </section>
 
+    <!-- Information View -->
     <section id="v-about" class="view-section">
         <h1>About JSH2Tech</h1>
         <div class="form-card">
-            <p><strong>Version:</strong> 2.5 (Modal Editor Edition)</p>
-            <p>JSH2Tech Cloud Inventory is a secure, real-time inventory and profit tracking system.</p>
+            <p><strong>Version:</strong> 3.0 (Enterprise OpenAccess Edition)</p>
+            <p>JSH2Tech Cloud Inventory provides dynamic synchronization for admins and effortless communication pipelines for commercial buyers and clients.</p>
         </div>
     </section>
 </main>
 
-<!-- Edit Modal -->
+<!-- Edit Modal Framework -->
 <div id="editModal" class="modal-overlay hidden">
     <div class="modal-card">
         <div class="modal-header">
@@ -306,6 +349,14 @@
             <div class="full-width">
                 <label style="font-size: 0.8rem;">Product Name</label>
                 <input type="text" id="m_pName">
+            </div>
+            <div>
+                <label style="font-size: 0.8rem;">Category</label>
+                <select id="m_pCategory">
+                    <option value="Laptop">Laptop</option>
+                    <option value="Ram">RAM</option>
+                    <option value="Storage">Storage</option>
+                </select>
             </div>
             <div>
                 <label style="font-size: 0.8rem;">Date</label>
@@ -323,6 +374,10 @@
                 <label style="font-size: 0.8rem;">Sale (₱)</label>
                 <input type="number" id="m_sPrice">
             </div>
+            <div class="full-width">
+                <label style="font-size: 0.8rem;">Product Details</label>
+                <textarea id="m_pDetails" rows="2"></textarea>
+            </div>
         </div>
         <input type="hidden" id="m_editId">
         <button class="btn btn-primary" id="saveEditBtn" style="margin-top: 25px; width: 100%;">Update Cloud Record</button>
@@ -334,6 +389,7 @@
     import { getDatabase, ref, set, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
     import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
+    // Configuration payload array mappings
     const firebaseConfig = {
         apiKey: "AIzaSyCaU8ZlDt3iWsqMnLzmMF2cwe_Zj6Ls72A",
         authDomain: "jsh2tech-inventory-e8b34.firebaseapp.com",
@@ -351,8 +407,56 @@
 
     let fullData = [];
     let isLogin = true;
+    let currentRole = 'guest'; // track current dashboard execution role: 'admin' | 'guest'
+    let currentBase64Images = [];
 
-    // --- GLOBAL FUNCTIONS FOR WINDOW SCOPE ---
+    // --- PHOTO PROCESSING LOGIC ---
+    document.getElementById('pPhotos').addEventListener('change', function(e) {
+        const files = Array.from(e.target.files).slice(0, 3);
+        currentBase64Images = [];
+        const previewContainer = document.getElementById('photoPreviewContainer');
+        previewContainer.innerHTML = '';
+
+        files.forEach(file => {
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                currentBase64Images.push(evt.target.result);
+                const img = document.createElement('img');
+                img.src = evt.target.result;
+                img.classList.add('preview-img');
+                previewContainer.appendChild(img);
+            }
+            reader.readAsDataURL(file);
+        });
+    });
+
+    // --- GATEWAY LAYER ROUTING MIGRATIONS ---
+    function configureUIVisibility() {
+        if(currentRole === 'admin') {
+            document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
+            document.getElementById('sidebarBrand').innerText = "JSH2Tech Admin";
+            document.getElementById('listHeader').innerText = "Inventory Management Workspace";
+            document.getElementById('thActions').innerText = "Actions";
+            showView('v-dash', document.getElementById('navDash'));
+        } else {
+            document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden'));
+            document.getElementById('sidebarBrand').innerText = "JSH2Tech Portal";
+            document.getElementById('listHeader').innerText = "Public Product Catalogue";
+            document.getElementById('thActions').innerText = "Inquiries";
+            showView('v-list', document.getElementById('navList'));
+        }
+    }
+
+    document.getElementById('guestBtn').onclick = () => {
+        currentRole = 'guest';
+        document.getElementById('authSection').classList.add('hidden');
+        document.getElementById('sidebar').classList.remove('hidden');
+        document.getElementById('mainContent').classList.remove('hidden');
+        configureUIVisibility();
+        initDataSync();
+    };
+
+    // --- GLOBAL SCOPE WINDOW BRIDGES ---
     window.showView = (id, el) => {
         document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
@@ -360,7 +464,15 @@
         if(el) el.classList.add('active');
     };
 
-    window.logout = () => signOut(auth);
+    window.logout = () => {
+        if (currentRole === 'admin') {
+            signOut(auth);
+        } else {
+            document.getElementById('authSection').classList.remove('hidden');
+            document.getElementById('sidebar').classList.add('hidden');
+            document.getElementById('mainContent').classList.add('hidden');
+        }
+    };
 
     window.deleteItem = (id) => {
         if(confirm("Permanently delete this cloud record?")) remove(ref(db, 'inventory/'+id));
@@ -371,11 +483,13 @@
         if(!item) return;
         
         document.getElementById('m_editId').value = id;
-        document.getElementById('m_pName').value = item.name;
-        document.getElementById('m_pDate').value = item.date;
-        document.getElementById('m_qty').value = item.qty;
-        document.getElementById('m_bPrice').value = item.buy;
-        document.getElementById('m_sPrice').value = item.sell;
+        document.getElementById('m_pName').value = item.name || '';
+        document.getElementById('m_pCategory').value = item.category || 'Laptop';
+        document.getElementById('m_pDate').value = item.date || '';
+        document.getElementById('m_qty').value = item.qty || 0;
+        document.getElementById('m_bPrice').value = item.buy || 0;
+        document.getElementById('m_sPrice').value = item.sell || 0;
+        document.getElementById('m_pDetails').value = item.details || '';
         
         document.getElementById('editModal').classList.remove('hidden');
     };
@@ -384,7 +498,16 @@
         document.getElementById('editModal').classList.add('hidden');
     };
 
-    // --- AUTH LOGIC ---
+    window.sendInquiry = (name, category, qty) => {
+        const recipient = "sales@jsh2tech.com"; // Configure fallback commercial destination desk
+        const subject = encodeURIComponent(`Product Inquiry: ${name} (${category})`);
+        const body = encodeURIComponent(`Hello JSH2Tech Team,\n\nI am interested in acquiring your product unit listed in the system portal:\n\nProduct Name: ${name}\nCategory: ${category}\nCurrent Stock Availability: ${qty} units\n\nPlease let me know your dynamic pricing matrix schedules, unit variations, and options for distribution shipping.\n\nBest regards.`);
+        
+        const gmailLink = `https://mail.google.com/mail/?view=cm&fs=1&to=${recipient}&su=${subject}&body=${body}`;
+        window.open(gmailLink, '_blank');
+    };
+
+    // --- AUTH BACKEND ROUTINES ---
     const authBtn = document.getElementById('authBtn');
     document.getElementById('toggleAuth').onclick = () => {
         isLogin = !isLogin;
@@ -404,18 +527,20 @@
         const sidebar = document.getElementById('sidebar');
         const main = document.getElementById('mainContent');
         if(user) {
+            currentRole = 'admin';
             authView.classList.add('hidden');
             sidebar.classList.remove('hidden');
             main.classList.remove('hidden');
+            configureUIVisibility();
             initDataSync();
-        } else {
+        } else if (currentRole === 'admin') {
             authView.classList.remove('hidden');
             sidebar.classList.add('hidden');
             main.classList.add('hidden');
         }
     });
 
-    // --- DATABASE SYNC ---
+    // --- ENGINE STORAGE SYNC ---
     function initDataSync() {
         onValue(inventoryRef, (snap) => {
             const data = snap.val();
@@ -425,45 +550,68 @@
         });
     }
 
-    // --- ADD NEW STOCK ---
+    // --- REGISTER NEW ASSET DATA RECORD ---
     document.getElementById('actionBtn').onclick = () => {
         const name = document.getElementById('pName').value;
+        const category = document.getElementById('pCategory').value;
         const date = document.getElementById('pDate').value;
-        const b = parseFloat(document.getElementById('bPrice').value);
-        const s = parseFloat(document.getElementById('sPrice').value);
-        const q = parseInt(document.getElementById('qty').value);
+        const b = parseFloat(document.getElementById('bPrice').value) || 0;
+        const s = parseFloat(document.getElementById('sPrice').value) || 0;
+        const q = parseInt(document.getElementById('qty').value) || 0;
+        const details = document.getElementById('pDetails').value;
 
-        if(!name || isNaN(b)) return alert("Please fill details correctly.");
+        if(!name || isNaN(b)) return alert("Please clarify execution mapping correctly.");
         
-        const payload = { name, date, buy: b, sell: s, qty: q, profit: (s - b) * q };
+        const payload = { 
+            name, 
+            category, 
+            date, 
+            buy: b, 
+            sell: s, 
+            qty: q, 
+            details,
+            images: currentBase64Images,
+            profit: (s - b) * q 
+        };
+        
         push(inventoryRef, payload).then(() => {
-            alert("Stock Added!");
+            alert("Stock Cloud Registry Complete!");
             document.querySelectorAll('#v-add input').forEach(i => i.value = '');
+            document.getElementById('pDetails').value = '';
+            document.getElementById('photoPreviewContainer').innerHTML = '';
+            currentBase64Images = [];
         });
     };
 
-    // --- SAVE MODAL EDITS ---
+    // --- EDIT WRITEBACK ACTIONS ---
     document.getElementById('saveEditBtn').onclick = () => {
         const id = document.getElementById('m_editId').value;
         const name = document.getElementById('m_pName').value;
+        const category = document.getElementById('m_pCategory').value;
         const date = document.getElementById('m_pDate').value;
-        const b = parseFloat(document.getElementById('m_bPrice').value);
-        const s = parseFloat(document.getElementById('m_sPrice').value);
-        const q = parseInt(document.getElementById('m_qty').value);
+        const b = parseFloat(document.getElementById('m_bPrice').value) || 0;
+        const s = parseFloat(document.getElementById('m_sPrice').value) || 0;
+        const q = parseInt(document.getElementById('m_qty').value) || 0;
+        const details = document.getElementById('m_pDetails').value;
 
-        const payload = { name, date, buy: b, sell: s, qty: q, profit: (s - b) * q };
+        const payload = { name, category, date, buy: b, sell: s, qty: q, details, profit: (s - b) * q };
+        
         update(ref(db, 'inventory/' + id), payload).then(() => {
             window.closeEditModal();
         });
     };
 
-    // --- SEARCH ---
+    // --- PIPELINE FILTER SEARCHING ---
     document.getElementById('searchBar').oninput = (e) => {
         const val = e.target.value.toLowerCase();
-        renderTable(fullData.filter(i => i.name.toLowerCase().includes(val)));
+        renderTable(fullData.filter(i => 
+            i.name.toLowerCase().includes(val) || 
+            (i.details && i.details.toLowerCase().includes(val)) ||
+            i.category.toLowerCase().includes(val)
+        ));
     };
 
-    // --- RENDER FUNCTIONS ---
+    // --- RENDER DOM OBJECTS ---
     function renderDashboard() {
         renderTable(fullData);
         renderHistory(fullData);
@@ -496,22 +644,56 @@
     function renderTable(data) {
         const tbody = document.getElementById('inventoryBody');
         tbody.innerHTML = '';
+        
         data.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(i => {
             const row = tbody.insertRow();
-            row.innerHTML = `
-                <td><strong>${i.name}</strong><br><small>Cost: ₱${i.buy}</small></td>
-                <td>${i.date}</td>
-                <td>${i.qty}</td>
-                <td style="color:${i.profit >= 0 ? 'var(--success)' : 'var(--danger)'}; font-weight: 700;">₱${i.profit.toLocaleString()}</td>
+            
+            // Build dynamic image string elements
+            let imageSection = '';
+            if(i.images && i.images.length > 0){
+                imageSection = `<div class="preview-container" style="margin-bottom:8px;">`;
+                i.images.forEach(imgBase64 => {
+                    imageSection += `<img src="${imgBase64}" class="preview-img" style="width:45px; height:45px;" />`;
+                });
+                imageSection += `</div>`;
+            }
+
+            // Variable structural cells based on administrative identity privileges
+            const costCellHtml = (currentRole === 'admin') ? `<td>₱${i.buy}</td>` : '';
+            const actionButtonHtml = (currentRole === 'admin') ? `
                 <td>
-                    <button class="btn" style="background:#f1f5f9; color:var(--warning);" onclick="editItem('${i.id}')"><i class="fas fa-edit"></i></button>
+                    <button class="btn" style="background:#f1f5f9; color:var(--warning); margin-bottom:4px;" onclick="editItem('${i.id}')"><i class="fas fa-edit"></i></button>
                     <button class="btn" style="background:#f1f5f9; color:var(--danger);" onclick="deleteItem('${i.id}')"><i class="fas fa-trash"></i></button>
+                </td>` : `
+                <td>
+                    <button class="btn btn-primary" style="font-size:0.8rem; background-color: #0ea5e9; padding:8px 12px;" onclick="sendInquiry('${i.name}', '${i.category}', ${i.qty})">
+                        <i class="form-icon fa-envelope fas" style="margin-right:6px;"></i>Inquire via Gmail
+                    </button>
                 </td>`;
+
+            row.innerHTML = `
+                <td>
+                    ${imageSection}
+                    <strong>${i.name}</strong><br>
+                    <small style="color:var(--text-muted); display:block; max-width:350px; margin-top:4px;">${i.details || 'No catalog specifications provided.'}</small>
+                </td>
+                ${costCellHtml}
+                <td><span class="badge badge-primary">${i.category || 'Unassigned'}</span></td>
+                <td>${i.date || '---'}</td>
+                <td>
+                    <strong>${i.qty} Units</strong><br>
+                    <span style="font-size:0.85rem; color:${i.qty > 0 ? 'var(--success)' : 'var(--danger)'}">
+                        ${i.qty > 0 ? 'In Stock' : 'Out of Stock'}
+                    </span>
+                </td>
+                ${actionButtonHtml};
+            `;
         });
     }
 
     function renderHistory(data) {
         const hbody = document.getElementById('historyBody');
+        if(!hbody) return;
         hbody.innerHTML = '';
         data.slice(0, 15).forEach(i => {
             const row = hbody.insertRow();
@@ -534,7 +716,7 @@
                 showView('v-add');
                 stopScanner();
             }
-        }).catch(err => alert("Camera Error: Ensure HTTPS is used."));
+        }).catch(err => alert("Camera System Error: Ensure SSL/HTTPS environment validation."));
     }
     function stopScanner() {
         if(qrScanner) qrScanner.stop().then(() => { document.getElementById('reader').innerHTML = ""; });
