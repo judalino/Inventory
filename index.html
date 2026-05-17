@@ -1,12 +1,3 @@
-index.htmlHere is the updated, production-ready code file.
-
-### What Was Enhanced?
-
-1. **Dynamic Administrative Toggle:** Added a **Status selector** (`Available` / `Sold`) directly inside both the **Add Product Form** and the **Edit Modal**.
-2. **Automated Structural Hiding Engine:** Modified the conditional logic so that if an item is marked as **"Sold"** by an administrator, it is **instantly stripped** from the guest catalog regardless of its available quantity count.
-3. **Admin Visibility:** Admins maintain full master transparency over all entries, rendering a stylized red `Sold Out` badge or green `In Stock` badge inside their workspace spreadsheet tracking matrix.
-
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -154,7 +145,7 @@ index.htmlHere is the updated, production-ready code file.
         .badge-danger { background: #fee2e2; color: #991b1b; }
 
         /* Photo Previews */
-        .preview-container { display: flex; gap: 10px; margin-top: 10px; }
+        .preview-container { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
         .preview-img { width: 60px; height: 60px; border-radius: 6px; object-fit: cover; border: 1px solid #cbd5e1; cursor: pointer; }
 
         /* Modal Styling */
@@ -188,7 +179,6 @@ index.htmlHere is the updated, production-ready code file.
 </head>
 <body>
 
-<!-- Authentication & Gateway Screen -->
 <div id="authSection">
     <div class="auth-card">
         <h2 id="authTitle" style="margin-bottom: 5px;">JSH2Tech Portal</h2>
@@ -210,7 +200,6 @@ index.htmlHere is the updated, production-ready code file.
     </div>
 </div>
 
-<!-- Navigation Sidebar -->
 <nav class="sidebar hidden" id="sidebar">
     <div class="sidebar-header" id="sidebarBrand">JSH2Tech</div>
     <div class="nav-links">
@@ -240,10 +229,8 @@ index.htmlHere is the updated, production-ready code file.
     </div>
 </nav>
 
-<!-- Main Dashboard Content -->
 <main class="main-content hidden" id="mainContent">
     
-    <!-- Admin Dashboard View -->
     <section id="v-dash" class="view-section admin-only active">
         <h1 style="margin-top: 0;">Performance Overview</h1>
         <div class="kpi-grid">
@@ -264,7 +251,6 @@ index.htmlHere is the updated, production-ready code file.
         <div id="monthlyGrid" class="monthly-scroll-container" style="display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px;"></div>
     </section>
 
-    <!-- Add Product View -->
     <section id="v-add" class="view-section admin-only">
         <h1>Inventory Management</h1>
         <div class="form-card">
@@ -319,14 +305,12 @@ index.htmlHere is the updated, production-ready code file.
         </div>
     </section>
 
-    <!-- Comprehensive Product List / Catalog View -->
     <section id="v-list" class="view-section">
         <h1 id="listHeader">Cloud Inventory List</h1>
         <div class="search-container" style="margin-bottom: 20px;">
             <input type="text" id="searchBar" placeholder="Search product catalogue or specs..." style="max-width: 400px;">
         </div>
         
-        <!-- Admin Table Element Layout -->
         <div id="adminTableContainer" class="table-container admin-only">
             <table>
                 <thead>
@@ -344,11 +328,9 @@ index.htmlHere is the updated, production-ready code file.
             </table>
         </div>
 
-        <!-- Guest Graphic Display Card Layout -->
         <div id="guestCatalogContainer" class="catalog-grid hidden"></div>
     </section>
 
-    <!-- QR Scanner View -->
     <section id="v-qr" class="view-section admin-only">
         <h1>Quick Stock Scan</h1>
         <p>Align the QR code within the frame to automatically fill product details.</p>
@@ -356,7 +338,6 @@ index.htmlHere is the updated, production-ready code file.
         <div id="reader"></div>
     </section>
 
-    <!-- Transactions View -->
     <section id="v-history" class="view-section admin-only">
         <h1>Transaction History</h1>
         <div class="table-container">
@@ -373,17 +354,15 @@ index.htmlHere is the updated, production-ready code file.
         </div>
     </section>
 
-    <!-- Information View -->
     <section id="v-about" class="view-section">
         <h1>About JSH2Tech</h1>
         <div class="form-card">
-            <p><strong>Version:</strong> 3.1 (Enterprise OpenAccess Edition)</p>
+            <p><strong>Version:</strong> 3.2 (Enterprise OpenAccess Edition)</p>
             <p>JSH2Tech Cloud Inventory provides dynamic synchronization for admins and effortless communication pipelines for commercial buyers and clients.</p>
         </div>
     </section>
 </main>
 
-<!-- Edit Modal Framework (Admin Only) -->
 <div id="editModal" class="modal-overlay hidden">
     <div class="modal-card">
         <div class="modal-header">
@@ -427,6 +406,11 @@ index.htmlHere is the updated, production-ready code file.
                 <input type="number" id="m_sPrice">
             </div>
             <div class="full-width">
+                <label style="font-size: 0.8rem; font-weight: 600;">Update Photos (Max 3 / Leaves current images intact if empty)</label>
+                <input type="file" id="m_pPhotos" multiple accept="image/*" style="padding: 8px;">
+                <div id="modalPhotoPreviewContainer" class="preview-container"></div>
+            </div>
+            <div class="full-width">
                 <label style="font-size: 0.8rem;">Product Details</label>
                 <textarea id="m_pDetails" rows="2"></textarea>
             </div>
@@ -436,7 +420,6 @@ index.htmlHere is the updated, production-ready code file.
     </div>
 </div>
 
-<!-- Product Details Modal (Guest Interactive Screen) -->
 <div id="detailsModal" class="modal-overlay hidden">
     <div class="modal-card">
         <div class="modal-header">
@@ -483,8 +466,9 @@ index.htmlHere is the updated, production-ready code file.
     let isLogin = true;
     let currentRole = 'guest'; 
     let currentBase64Images = [];
+    let editModalBase64Images = [];
 
-    // --- PHOTO PROCESSING LOGIC ---
+    // --- PHOTO PROCESSING LOGIC (NEW REGISTRATION) ---
     document.getElementById('pPhotos').addEventListener('change', function(e) {
         const files = Array.from(e.target.files).slice(0, 3);
         currentBase64Images = [];
@@ -495,6 +479,26 @@ index.htmlHere is the updated, production-ready code file.
             const reader = new FileReader();
             reader.onload = function(evt) {
                 currentBase64Images.push(evt.target.result);
+                const img = document.createElement('img');
+                img.src = evt.target.result;
+                img.classList.add('preview-img');
+                previewContainer.appendChild(img);
+            }
+            reader.readAsDataURL(file);
+        });
+    });
+
+    // --- PHOTO PROCESSING LOGIC (EDIT MODAL MATRIX) ---
+    document.getElementById('m_pPhotos').addEventListener('change', function(e) {
+        const files = Array.from(e.target.files).slice(0, 3);
+        editModalBase64Images = [];
+        const previewContainer = document.getElementById('modalPhotoPreviewContainer');
+        previewContainer.innerHTML = '';
+
+        files.forEach(file => {
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                editModalBase64Images.push(evt.target.result);
                 const img = document.createElement('img');
                 img.src = evt.target.result;
                 img.classList.add('preview-img');
@@ -569,6 +573,19 @@ index.htmlHere is the updated, production-ready code file.
         document.getElementById('m_sPrice').value = item.sell || 0;
         document.getElementById('m_pDetails').value = item.details || '';
         
+        // Fetch existing cloud photos to populate current configuration states
+        editModalBase64Images = item.images ? [...item.images] : [];
+        const previewContainer = document.getElementById('modalPhotoPreviewContainer');
+        previewContainer.innerHTML = '';
+        
+        editModalBase64Images.forEach(imgData => {
+            const img = document.createElement('img');
+            img.src = imgData;
+            img.classList.add('preview-img');
+            previewContainer.appendChild(img);
+        });
+
+        document.getElementById('m_pPhotos').value = ''; // Flush input file handler state
         document.getElementById('editModal').classList.remove('hidden');
     };
 
@@ -703,7 +720,8 @@ index.htmlHere is the updated, production-ready code file.
         const q = parseInt(document.getElementById('m_qty').value) || 0;
         const details = document.getElementById('m_pDetails').value;
 
-        const payload = { name, category, status, date, buy: b, sell: s, qty: q, details, profit: (s - b) * q };
+        // Bundle updated configuration states including mutated active image arrays
+        const payload = { name, category, status, date, buy: b, sell: s, qty: q, details, images: editModalBase64Images, profit: (s - b) * q };
         
         update(ref(db, 'inventory/' + id), payload).then(() => { window.closeEditModal(); });
     };
