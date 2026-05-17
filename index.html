@@ -140,6 +140,14 @@
         .btn-warning { background: var(--warning); color: white; padding: 8px 12px; }
         .btn-warning:hover { background: #e05e00; }
 
+        /* Inquiry Button Suite Extensions */
+        .btn-gmail { background: #ea4335; color: white; }
+        .btn-gmail:hover { background: #d33225; }
+        .btn-messenger { background: #006aff; color: white; }
+        .btn-messenger:hover { background: #0056cc; }
+        .btn-whatsapp { background: #25d366; color: white; }
+        .btn-whatsapp:hover { background: #1ebd54; }
+
         /* Table Customization */
         .table-container { background: white; border-radius: 16px; border: 1px solid var(--border-color); overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.01); }
         table { width: 100%; border-collapse: collapse; }
@@ -170,10 +178,18 @@
         .badge-success { background: #d1fae5; color: #065f46; }
         .badge-danger { background: var(--warning-glow); color: var(--warning); border: 1px solid rgba(255,107,0,0.1); }
 
-        /* Image Media Previews */
+        /* Image Media Previews & Interactive Removers */
         .preview-container { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
-        .preview-img { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border-color); transition: all 0.2s ease; }
+        .preview-wrapper { position: relative; display: inline-block; }
+        .preview-img { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border-color); transition: all 0.2s ease; cursor: pointer; }
         .preview-img:hover { border-color: var(--primary); transform: scale(1.05); }
+        
+        .remove-img-overlay {
+            position: absolute; top: -5px; right: -5px; width: 18px; height: 18px;
+            background: var(--danger); color: white; border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; font-size: 10px; cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2); font-weight: bold;
+        }
 
         /* Modals Overlay */
         .modal-overlay {
@@ -388,7 +404,7 @@
     <section id="v-about" class="view-section">
         <h1>About the System</h1>
         <div class="form-card">
-            <p><strong>System Version:</strong> 4.1 (Branded Scanner Update)</p>
+            <p><strong>System Version:</strong> 4.2 (UI/UX Omnichannel Update)</p>
             <p style="line-height:1.6;">This inventory system allows administrators to manage refurbished stock configurations while building light inquiry communication workflows directly with online retail buyers.</p>
         </div>
     </section>
@@ -437,6 +453,12 @@
                 <input type="number" id="m_sPrice">
             </div>
             <div class="full-width">
+                <label>Current Product Photos (Max 5 Total)</label>
+                <div id="m_photoEditContainer" class="preview-container" style="margin-bottom:15px; padding:10px; background:#f8fafc; border-radius:8px;"></div>
+                <label>Append New Photos</label>
+                <input type="file" id="m_pPhotosAppend" multiple accept="image/*" style="padding: 8px; background: #ffffff; border: 1px dashed var(--border-color)">
+            </div>
+            <div class="full-width">
                 <label>Product Details</label>
                 <textarea id="m_pDetails" rows="3"></textarea>
             </div>
@@ -462,9 +484,19 @@
             <h4 style="margin:0 0 10px 0; font-size:0.9rem; color: var(--text-muted); text-transform: uppercase; letter-spacing:0.5px;">Product Configuration Details</h4>
             <p id="d_pDetails" style="margin:0; font-size:0.95rem; line-height:1.6; color:var(--text-main); background:#f8fafc; padding:18px; border-radius:12px; border:1px solid var(--border-color); white-space: pre-wrap;"></p>
         </div>
-        <button class="btn btn-danger" id="buyBtn" style="width: 100%; padding: 16px; font-size:1rem;">
-            <i class="fa-solid fa-cart-shopping" style="margin-right:12px;"></i>Inquire via Gmail
-        </button>
+        
+        <h4 style="font-size:0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing:0.5px; margin-bottom:12px;">Select Communication Channel to Inquire</h4>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
+            <button class="btn btn-gmail" id="buyBtnGmail">
+                <i class="fa-solid fa-envelope" style="margin-right:10px;"></i>Inquire via Gmail
+            </button>
+            <button class="btn btn-messenger" id="buyBtnMessenger">
+                <i class="fa-brands fa-facebook-messenger" style="margin-right:10px;"></i>Messenger Chat
+            </button>
+            <button class="btn btn-whatsapp" id="buyBtnWhatsapp">
+                <i class="fa-brands fa-whatsapp" style="margin-right:10px;"></i>WhatsApp Chat
+            </button>
+        </div>
     </div>
 </div>
 
@@ -475,7 +507,7 @@
 
     const firebaseConfig = {
         apiKey: "AIzaSyCaU8ZlDt3iWsqMnLzmMF2cwe_Zj6Ls72A",
-        authDomain: "jsh2tech-inventory-e8b34.firebaseapp.com",
+        authDomain: "https://www.facebook.com/profile.php?id=100000595169081",
         projectId: "jsh2tech-inventory-e8b34",
         storageBucket: "jsh2tech-inventory-e8b34.firebasestorage.app",
         messagingSenderId: "606686103127",
@@ -492,9 +524,10 @@
     let isLogin = true;
     let currentRole = 'guest'; 
     let currentBase64Images = [];
+    let modalEditingBase64Images = [];
     let qrScannerInstance = null;
 
-    // --- PHOTO PROCESSING (ADJUSTED TO 5 PHOTOS MAX) ---
+    // --- PHOTO PROCESSING (ADD NEW PRODUCT CAPTURE) ---
     document.getElementById('pPhotos').addEventListener('change', function(e) {
         const files = Array.from(e.target.files).slice(0, 5);
         currentBase64Images = [];
@@ -514,6 +547,60 @@
         });
     });
 
+    // --- PHOTO PROCESSING (APPEND TO EXISTING ON EDIT MODAL) ---
+    document.getElementById('m_pPhotosAppend').addEventListener('change', function(e) {
+        const slotsAvailable = 5 - modalEditingBase64Images.length;
+        if(slotsAvailable <= 0) {
+            alert("Maximum capacity of 5 photos reached. Remove current images to append alternative views.");
+            e.target.value = '';
+            return;
+        }
+        const files = Array.from(e.target.files).slice(0, slotsAvailable);
+        
+        let filesProcessed = 0;
+        files.forEach(file => {
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                modalEditingBase64Images.push(evt.target.result);
+                filesProcessed++;
+                if(filesProcessed === files.length) {
+                    renderEditModalThumbnails();
+                    e.target.value = '';
+                }
+            }
+            reader.readAsDataURL(file);
+        });
+    });
+
+    function renderEditModalThumbnails() {
+        const container = document.getElementById('m_photoEditContainer');
+        container.innerHTML = '';
+        if(modalEditingBase64Images.length === 0) {
+            container.innerHTML = `<span style="font-size:0.85rem; color:var(--text-muted)">No configuration graphics assigned to this stock record.</span>`;
+            return;
+        }
+        modalEditingBase64Images.forEach((imgSrc, index) => {
+            const wrapper = document.createElement('div');
+            wrapper.classList.add('preview-wrapper');
+            
+            const img = document.createElement('img');
+            img.src = imgSrc;
+            img.classList.add('preview-img');
+            
+            const removeOverlay = document.createElement('div');
+            removeOverlay.classList.add('remove-img-overlay');
+            removeOverlay.innerHTML = '&times;';
+            removeOverlay.onclick = () => {
+                modalEditingBase64Images.splice(index, 1);
+                renderEditModalThumbnails();
+            };
+
+            wrapper.appendChild(img);
+            wrapper.appendChild(removeOverlay);
+            container.appendChild(wrapper);
+        });
+    }
+
     // --- QR CODE SCANNER INITIALIZATION ENGINE FIXED ---
     document.getElementById('startCamBtn').onclick = () => {
         if (qrScannerInstance) {
@@ -527,7 +614,6 @@
         }, false);
         
         qrScannerInstance.render((decodedText) => {
-            // Success Callback logic when a QR string is verified
             document.getElementById('searchBar').value = decodedText;
             document.getElementById('searchBar').dispatchEvent(new Event('input'));
             showView('v-list', document.getElementById('navList'));
@@ -536,7 +622,7 @@
                 qrScannerInstance.clear();
             }
         }, (errorMessage) => {
-            // Silent error tracking to prevent warning spam
+            // Silent drop track catches
         });
     };
 
@@ -571,7 +657,6 @@
 
     // --- GLOBAL SCOPE WINDOW BRIDGES ---
     window.showView = (id, el) => {
-        // Clear QR track when switching screens to release camera
         if (id !== 'v-qr' && qrScannerInstance) {
             qrScannerInstance.clear().catch(err => console.log(err));
         }
@@ -610,6 +695,10 @@
         document.getElementById('m_sPrice').value = item.sell || 0;
         document.getElementById('m_pDetails').value = item.details || '';
         
+        // Deep copy images array to keep sandbox local during current operation
+        modalEditingBase64Images = item.images ? [...item.images] : [];
+        renderEditModalThumbnails();
+        
         document.getElementById('editModal').classList.remove('hidden');
     };
 
@@ -617,7 +706,7 @@
         document.getElementById('editModal').classList.add('hidden');
     };
 
-    // --- INTERACTIVE DETAILS VIEW MODAL FOR GUESTS ---
+    // --- INTERACTIVE DETAILS VIEW MODAL FOR GUESTS WITH OMNICHANNEL CHAT ROUTING ---
     window.openDetailsModal = (id) => {
         const item = fullData.find(x => x.id === id);
         if(!item) return;
@@ -647,8 +736,15 @@
             mainImg.classList.add('hidden');
         }
 
-        document.getElementById('buyBtn').onclick = () => {
-            sendPurchaseInquiry(item.name, item.category, item.sell);
+        // Omnichannel Communications Inbound Hooks
+        document.getElementById('buyBtnGmail').onclick = () => {
+            sendGmailInquiry(item.name, item.category, item.sell);
+        };
+        document.getElementById('buyBtnMessenger').onclick = () => {
+            sendMessengerInquiry(item.name, item.category, item.sell);
+        };
+        document.getElementById('buyBtnWhatsapp').onclick = () => {
+            sendWhatsappInquiry(item.name, item.category, item.sell);
         };
 
         document.getElementById('detailsModal').classList.remove('hidden');
@@ -658,12 +754,25 @@
         document.getElementById('detailsModal').classList.add('hidden');
     };
 
-    function sendPurchaseInquiry(name, category, price) {
+    // --- OMNICHANNEL INQUIRY GENERATION PLATFORMS ---
+    function sendGmailInquiry(name, category, price) {
         const recipient = "hopeband22@gmail.com";
-        const subject = encodeURIComponent(`Purchase Inquiry: ${name}`);
-        const body = encodeURIComponent(`Hello JSH2Tech,\n\nI am interested in buying the following item from your catalogue:\n\nProduct Name: ${name}\nCategory: ${category}\nPrice: ₱${(price || 0).toLocaleString()}\n\nPlease verify availability and provide further details.\n\nThank you!`);
-        
+        const subject = encodeURIComponent(`Inquiry: ${name}`);
+        const body = encodeURIComponent(`Hello JSH2Tech,\n\nI am interested in acquiring this unit from your catalogue:\n\nProduct: ${name}\nCategory: ${category}\nPrice: ₱${(price || 0).toLocaleString()}\n\nPlease confirm availability.\n\nThank you!`);
         window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${recipient}&su=${subject}&body=${body}`, '_blank');
+    }
+
+    function sendMessengerInquiry(name, category, price) {
+        // Change username to your exact business page/personal profile slug
+        const fbUsername = "JSH2Tech"; 
+        window.open(`https://m.me/${fbUsername}`, '_blank');
+    }
+
+    function sendWhatsappInquiry(name, category, price) {
+        // Standardized Ph country code format profile phone string
+        const phoneNumber = "639123456789"; 
+        const message = encodeURIComponent(`Hello JSH2Tech, I am checking the availability of the ${name} (${category}) priced at PHP ${(price || 0).toLocaleString()}.`);
+        window.open(`https://api.whatsapp.com/send?phone=${phoneNumber}&text=${message}`, '_blank');
     }
 
     // --- AUTH BACKEND ROUTINES ---
@@ -744,7 +853,8 @@
         const q = parseInt(document.getElementById('m_qty').value) || 0;
         const details = document.getElementById('m_pDetails').value;
 
-        const payload = { name, category, status, date, buy: b, sell: s, qty: q, details, profit: (s - b) * q };
+        // Upgraded state package including updated modified/deleted visual fields arrays
+        const payload = { name, category, status, date, buy: b, sell: s, qty: q, details, images: modalEditingBase64Images, profit: (s - b) * q };
         
         update(ref(db, 'inventory/' + id), payload).then(() => { window.closeEditModal(); });
     };
