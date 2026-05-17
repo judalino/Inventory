@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSH2Tech | Cloud Inventory & Inquiry Dashboard</title>
+    
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --sidebar: #0f172a;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #06b6d4;
+        }
+
+        * { box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { margin: 0; background-color: var(--bg); color: var(--text-main); display: flex; min-height: 100vh; }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: 260px;
+            background-color: var(--sidebar);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+        .sidebar-header {
+            padding: 30px 20px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+            border-bottom: 1px solid #1e293b;
+        }
+        .nav-links { padding: 20px 0; flex-grow: 1; }
+        .nav-item {
+            padding: 14px 25px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            color: #94a3b8;
+            transition: 0.2s;
+            text-decoration: none;
+        }
+        .nav-item i { margin-right: 15px; width: 20px; text-align: center; }
+        .nav-item:hover, .nav-item.active {
+            background-color: #1e293b;
+            color: white;
+            border-left: 4px solid var(--primary);
+        }
+        .logout-area { padding: 20px; border-top: 1px solid #1e293b; }
+
+        /* Main Content Area */
+        .main-content {
+            margin-left: 260px;
+            flex-grow: 1;
+            padding: 40px;
+            width: calc(100% - 260px);
+        }
+
+        /* View Management */
+        .view-section { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .view-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Auth Screen */
+        #authSection {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg); z-index: 9999; display: flex; align-items: center; justify-content: center;
+        }
+        .auth-card {
+            background: white; padding: 40px; border-radius: 20px;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); width: 100%; max-width: 400px;
+        }
+
+        /* KPI Cards */
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 25px; margin-bottom: 30px; }
+        .kpi-card {
+            background: var(--card); padding: 25px; border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;
+        }
+        .kpi-card h3 { margin: 0; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; }
+        .kpi-card .value { font-size: 1.8rem; font-weight: 700; margin: 10px 0; }
+
+        /* Form & Inputs */
+        .form-card { background: white; padding: 30px; border-radius: 16px; border: 1px solid #e2e8f0; max-width: 800px; }
+        .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .full-width { grid-column: span 2; }
+        input, select, textarea {
+            width: 100%; padding: 12px 15px; border-radius: 8px;
+            border: 1px solid #e2e8f0; outline: none; transition: 0.2s; font-size: 0.95rem;
+        }
+        input:focus, select:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
+        .btn {
+            padding: 12px 25px; border-radius: 8px; border: none; font-weight: 600;
+            cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-danger { background: var(--danger); color: white; padding: 8px 12px; }
+        .btn-info { background: var(--info); color: white; padding: 8px 12px; }
+        .btn-warning { background: var(--warning); color: white; padding: 8px 12px; }
+
+        /* Table Styling (Admin View) */
+        .table-container { background: white; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #f1f5f9; padding: 15px; text-align: left; font-size: 0.85rem; color: var(--text-muted); }
+        td { padding: 15px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+
+        /* Product Catalog Grid (Guest View) */
+        .catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; margin-top: 20px; }
+        .catalog-card { 
+            background: white; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); transition: transform 0.2s, box-shadow 0.2s; cursor: pointer;
+        }
+        .catalog-card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0,0,0,0.08); }
+        .catalog-img-frame { width: 100%; height: 200px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;}
+        .catalog-img-frame img { width: 100%; height: 100%; object-fit: cover; }
+        .catalog-img-placeholder { color: #94a3b8; font-size: 3rem; }
+        .catalog-info { padding: 20px; }
+        .catalog-title { font-size: 1.1rem; font-weight: 700; margin: 0 0 8px 0; color: var(--text-main); }
+        .catalog-desc { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .catalog-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f1f5f9; padding-top: 15px; }
+        .catalog-price { font-size: 1.25rem; font-weight: 700; color: var(--primary); }
+
+        /* Badge design */
+        .badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+        .badge-primary { background: #e0e7ff; color: #4338ca; }
+        .badge-success { background: #d1fae5; color: #065f46; }
+        .badge-danger { background: #fee2e2; color: #991b1b; }
+
+        /* Photo Previews */
+        .preview-container { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+        .preview-img { width: 60px; height: 60px; border-radius: 6px; object-fit: cover; border: 1px solid #cbd5e1; cursor: pointer; }
+
+        /* Modal Styling */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.7); display: flex; align-items: center;
+            justify-content: center; z-index: 2000; backdrop-filter: blur(4px);
+        }
+        .modal-card {
+            background: white; padding: 30px; border-radius: 20px;
+            width: 90%; max-width: 650px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            max-height: 90vh; overflow-y: auto;
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted); }
+
+        /* Detail View Modal Elements */
+        .modal-gallery { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        .main-modal-img { width: 100%; height: 300px; object-fit: contain; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; }
+
+        .hidden { display: none !important; }
+        
+        @media (max-width: 768px) {
+            .sidebar { width: 70px; }
+            .sidebar span, .sidebar-header { display: none; }
+            .main-content { margin-left: 70px; width: calc(100% - 70px); padding: 20px; }
+            .input-grid { grid-template-columns: 1fr; }
+            .full-width { grid-column: span 1; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Authentication & Gateway Screen -->
+<div id="authSection">
+    <div class="auth-card">
+        <h2 id="authTitle" style="margin-bottom: 5px;">JSH2Tech Portal</h2>
+        <p style="color: var(--text-muted); margin-bottom: 25px;" id="authDesc">Enter admin credentials or open public view.</p>
+        
+        <div id="credentialsForm">
+            <input type="email" id="authEmail" placeholder="Email Address">
+            <input type="password" id="authPwd" placeholder="Password" style="margin-top: 10px;">
+            <button class="btn btn-primary" id="authBtn" style="width: 100%; margin-top: 20px;">Sign In as Admin</button>
+            <p style="text-align: center; margin-top: 15px; font-size: 0.9rem;">
+                <a href="#" id="toggleAuth" style="color: var(--primary); text-decoration: none;">Request Admin Access</a>
+            </p>
+        </div>
+
+        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e2e8f0; text-align: center;">
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">Looking for parts or systems?</p>
+            <button class="btn btn-info" id="guestBtn" style="width: 100%; background-color: #0284c7;"><i class="fas fa-eye" style="margin-right: 8px;"></i>Open Access Dashboard</button>
+        </div>
+    </div>
+</div>
+
+<!-- Navigation Sidebar -->
+<nav class="sidebar hidden" id="sidebar">
+    <div class="sidebar-header" id="sidebarBrand">JSH2Tech</div>
+    <div class="nav-links">
+        <div class="nav-item admin-only active" id="navDash" onclick="showView('v-dash', this)">
+            <i class="fas fa-chart-pie"></i><span>Dashboard</span>
+        </div>
+        <div class="nav-item admin-only" id="navAdd" onclick="showView('v-add', this)">
+            <i class="fas fa-plus-circle"></i><span>Add Product</span>
+        </div>
+        <div class="nav-item" id="navList" onclick="showView('v-list', this)">
+            <i class="fas fa-boxes-stacked"></i><span>Product Catalogue</span>
+        </div>
+        <div class="nav-item admin-only" id="navQr" onclick="showView('v-qr', this)">
+            <i class="fas fa-qrcode"></i><span>QR Scanner</span>
+        </div>
+        <div class="nav-item admin-only" id="navHist" onclick="showView('v-history', this)">
+            <i class="fas fa-history"></i><span>History</span>
+        </div>
+        <div class="nav-item" id="navAbout" onclick="showView('v-about', this)">
+            <i class="fas fa-info-circle"></i><span>About Us</span>
+        </div>
+    </div>
+    <div class="logout-area">
+        <button onclick="logout()" class="btn btn-danger" style="width: 100%;">
+            <i class="fas fa-sign-out-alt" style="margin-right: 10px;"></i>Exit System
+        </button>
+    </div>
+</nav>
+
+<!-- Main Dashboard Content -->
+<main class="main-content hidden" id="mainContent">
+    
+    <!-- Admin Dashboard View -->
+    <section id="v-dash" class="view-section admin-only active">
+        <h1 style="margin-top: 0;">Performance Overview</h1>
+        <div class="kpi-grid">
+            <div class="kpi-card" style="border-left: 5px solid var(--success);">
+                <h3>Total Profit</h3>
+                <div class="value" id="kpi-pos" style="color: var(--success);">₱0</div>
+            </div>
+            <div class="kpi-card" style="border-left: 5px solid var(--danger);">
+                <h3>Total Loss</h3>
+                <div class="value" id="kpi-neg" style="color: var(--danger);">₱0</div>
+            </div>
+            <div class="kpi-card" style="border-left: 5px solid var(--primary);">
+                <h3>Net Revenue</h3>
+                <div class="value" id="kpi-net">₱0</div>
+            </div>
+        </div>
+        <h3>Monthly Trend</h3>
+        <div id="monthlyGrid" class="monthly-scroll-container" style="display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px;"></div>
+    </section>
+
+    <!-- Add Product View -->
+    <section id="v-add" class="view-section admin-only">
+        <h1>Inventory Management</h1>
+        <div class="form-card">
+            <h3 id="formTitle">Register New Stock</h3>
+            <div class="input-grid">
+                <div class="full-width">
+                    <label style="font-size: 0.8rem; font-weight: 600;">Product Name</label>
+                    <input type="text" id="pName" placeholder="e.g. HP EliteBook 840 G5">
+                </div>
+                <div>
+                    <label style="font-size: 0.8rem; font-weight: 600;">Category</label>
+                    <select id="pCategory">
+                        <option value="Laptop">Laptop</option>
+                        <option value="Ram">RAM</option>
+                        <option value="Storage">Storage</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 0.8rem; font-weight: 600;">Availability Status</label>
+                    <select id="pStatus">
+                        <option value="available">Available</option>
+                        <option value="sold">Sold</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 0.8rem; font-weight: 600;">Transaction Date</label>
+                    <input type="date" id="pDate">
+                </div>
+                <div>
+                    <label style="font-size: 0.8rem; font-weight: 600;">Quantity</label>
+                    <input type="number" id="qty" placeholder="0">
+                </div>
+                <div>
+                    <label style="font-size: 0.8rem; font-weight: 600;">Cost Price (₱)</label>
+                    <input type="number" id="bPrice" placeholder="0.00">
+                </div>
+                <div>
+                    <label style="font-size: 0.8rem; font-weight: 600;">Sale Price (₱)</label>
+                    <input type="number" id="sPrice" placeholder="0.00">
+                </div>
+                <div class="full-width">
+                    <label style="font-size: 0.8rem; font-weight: 600;">Product Photos (Max 3)</label>
+                    <input type="file" id="pPhotos" multiple accept="image/*" style="padding: 8px;">
+                    <div id="photoPreviewContainer" class="preview-container"></div>
+                </div>
+                <div class="full-width">
+                    <label style="font-size: 0.8rem; font-weight: 600;">Product Details / Specifications</label>
+                    <textarea id="pDetails" rows="3" placeholder="Enter configuration specifications, warranty structure details, and conditions details..."></textarea>
+                </div>
+            </div>
+            <button class="btn btn-primary" id="actionBtn" style="margin-top: 25px; width: 100%;">Save Product to Cloud</button>
+        </div>
+    </section>
+
+    <!-- Comprehensive Product List / Catalog View -->
+    <section id="v-list" class="view-section">
+        <h1 id="listHeader">Cloud Inventory List</h1>
+        <div class="search-container" style="margin-bottom: 20px;">
+            <input type="text" id="searchBar" placeholder="Search product catalogue or specs..." style="max-width: 400px;">
+        </div>
+        
+        <!-- Admin Table Element Layout -->
+        <div id="adminTableContainer" class="table-container admin-only">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Product Details</th>
+                        <th>Cost Price</th>
+                        <th>Sale Price</th>
+                        <th>Category</th>
+                        <th>Date Stocked</th>
+                        <th>Status / Qty</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="inventoryBody"></tbody>
+            </table>
+        </div>
+
+        <!-- Guest Graphic Display Card Layout -->
+        <div id="guestCatalogContainer" class="catalog-grid hidden"></div>
+    </section>
+
+    <!-- QR Scanner View -->
+    <section id="v-qr" class="view-section admin-only">
+        <h1>Quick Stock Scan</h1>
+        <p>Align the QR code within the frame to automatically fill product details.</p>
+        <button class="btn btn-primary" onclick="startScanner()"><i class="fas fa-camera" style="margin-right:10px;"></i> Open Camera</button>
+        <div id="reader"></div>
+    </section>
+
+    <!-- Transactions View -->
+    <section id="v-history" class="view-section admin-only">
+        <h1>Transaction History</h1>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Timestamp / Date</th>
+                        <th>Product Name</th>
+                        <th>Net Margin Assessment</th>
+                    </tr>
+                </thead>
+                <tbody id="historyBody"></tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Information View -->
+    <section id="v-about" class="view-section">
+        <h1>About JSH2Tech</h1>
+        <div class="form-card">
+            <p><strong>Version:</strong> 3.2 (Enterprise OpenAccess Edition)</p>
+            <p>JSH2Tech Cloud Inventory provides dynamic synchronization for admins and effortless communication pipelines for commercial buyers and clients.</p>
+        </div>
+    </section>
+</main>
+
+<!-- Edit Modal Framework (Admin Only with Image Sync Management) -->
+<div id="editModal" class="modal-overlay hidden">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3>Edit Product Record</h3>
+            <button class="close-btn" onclick="closeEditModal()">&times;</button>
+        </div>
+        <div class="input-grid">
+            <div class="full-width">
+                <label style="font-size: 0.8rem;">Product Name</label>
+                <input type="text" id="m_pName">
+            </div>
+            <div>
+                <label style="font-size: 0.8rem;">Category</label>
+                <select id="m_pCategory">
+                    <option value="Laptop">Laptop</option>
+                    <option value="Ram">RAM</option>
+                    <option value="Storage">Storage</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-size: 0.8rem;">Catalog Status</label>
+                <select id="m_pStatus">
+                    <option value="available">Available</option>
+                    <option value="sold">Sold</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-size: 0.8rem;">Date</label>
+                <input type="date" id="m_pDate">
+            </div>
+            <div>
+                <label style="font-size: 0.8rem;">Quantity</label>
+                <input type="number" id="m_qty">
+            </div>
+            <div>
+                <label style="font-size: 0.8rem;">Cost (₱)</label>
+                <input type="number" id="m_bPrice">
+            </div>
+            <div>
+                <label style="font-size: 0.8rem;">Sale (₱)</label>
+                <input type="number" id="m_sPrice">
+            </div>
+            <div class="full-width">
+                <label style="font-size: 0.8rem; font-weight:600;">Update Photos (Max 3 / Overwrites existing ones)</label>
+                <input type="file" id="m_pPhotos" multiple accept="image/*" style="padding: 8px;">
+                <div id="modalPhotoPreviewContainer" class="preview-container"></div>
+            </div>
+            <div class="full-width">
+                <label style="font-size: 0.8rem;">Product Details</label>
+                <textarea id="m_pDetails" rows="2"></textarea>
+            </div>
+        </div>
+        <input type="hidden" id="m_editId">
+        <button class="btn btn-primary" id="saveEditBtn" style="margin-top: 25px; width: 100%;">Update Cloud Record</button>
+    </div>
+</div>
+
+<!-- Product Details Modal (Guest Interactive Screen) -->
+<div id="detailsModal" class="modal-overlay hidden">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3 id="d_pName" style="margin:0; font-size: 1.4rem;">Product Specifications</h3>
+            <button class="close-btn" onclick="closeDetailsModal()">&times;</button>
+        </div>
+        <div class="modal-gallery">
+            <img id="d_mainImg" src="" class="main-modal-img" alt="Product view display">
+            <div id="d_thumbContainer" class="preview-container"></div>
+        </div>
+        <div style="margin-bottom: 20px;">
+            <span id="d_pCategory" class="badge badge-primary" style="margin-bottom:10px;">Category</span>
+            <div style="font-size: 1.5rem; font-weight:700; color: var(--primary); margin: 5px 0 15px 0;" id="d_pPrice">₱0.00</div>
+            <h4 style="margin:0 0 8px 0; font-size:0.95rem; color: var(--text-muted)">Description & Specifications</h4>
+            <p id="d_pDetails" style="margin:0; font-size:0.95rem; line-height:1.6; color:var(--text-main); background:#f8fafc; padding:15px; border-radius:8px; border:1px solid #e2e8f0; white-space: pre-wrap;"></p>
+        </div>
+        <button class="btn btn-primary" id="buyBtn" style="width: 100%; padding: 15px; font-size:1.05rem; background-color: #10b981;">
+            <i class="fa-solid fa-cart-shopping" style="margin-right:10px;"></i>Buy Now / Send Gmail Inquiry
+        </button>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, set, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyCaU8ZlDt3iWsqMnLzmMF2cwe_Zj6Ls72A",
+        authDomain: "jsh2tech-inventory-e8b34.firebaseapp.com",
+        projectId: "jsh2tech-inventory-e8b34",
+        storageBucket: "jsh2tech-inventory-e8b34.firebasestorage.app",
+        messagingSenderId: "606686103127",
+        appId: "1:606686103127:web:e0a24aa8fad24ce3268512",
+        databaseURL: "https://jsh2tech-inventory-e8b34-default-rtdb.asia-southeast1.firebasedatabase.app"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const auth = getAuth(app);
+    const inventoryRef = ref(db, 'inventory');
+
+    let fullData = [];
+    let isLogin = true;
+    let currentRole = 'guest'; 
+    let currentBase64Images = [];
+    let editModalBase64Images = [];
+
+    // --- NEW STOCK INGESTION PHOTO LOGIC ---
+    document.getElementById('pPhotos').addEventListener('change', function(e) {
+        const files = Array.from(e.target.files).slice(0, 3);
+        currentBase64Images = [];
+        const previewContainer = document.getElementById('photoPreviewContainer');
+        previewContainer.innerHTML = '';
+
+        files.forEach(file => {
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                currentBase64Images.push(evt.target.result);
+                const img = document.createElement('img');
+                img.src = evt.target.result;
+                img.classList.add('preview-img');
+                previewContainer.appendChild(img);
+            }
+            reader.readAsDataURL(file);
+        });
+    });
+
+    // --- MODAL PHOTO CHANGES ENGINE LOGIC ---
+    document.getElementById('m_pPhotos').addEventListener('change', function(e) {
+        const files = Array.from(e.target.files).slice(0, 3);
+        editModalBase64Images = [];
+        const previewContainer = document.getElementById('modalPhotoPreviewContainer');
+        previewContainer.innerHTML = '';
+
+        files.forEach(file => {
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                editModalBase64Images.push(evt.target.result);
+                const img = document.createElement('img');
+                img.src = evt.target.result;
+                img.classList.add('preview-img');
+                previewContainer.appendChild(img);
+            }
+            reader.readAsDataURL(file);
+        });
+    });
+
+    // --- GATEWAY LAYER ROUTING MIGRATIONS ---
+    function configureUIVisibility() {
+        if(currentRole === 'admin') {
+            document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
+            document.getElementById('adminTableContainer').classList.remove('hidden');
+            document.getElementById('guestCatalogContainer').classList.add('hidden');
+            document.getElementById('sidebarBrand').innerText = "JSH2Tech Admin";
+            document.getElementById('listHeader').innerText = "Inventory Management Workspace";
+            showView('v-dash', document.getElementById('navDash'));
+        } else {
+            document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden'));
+            document.getElementById('adminTableContainer').classList.add('hidden');
+            document.getElementById('guestCatalogContainer').classList.remove('hidden');
+            document.getElementById('sidebarBrand').innerText = "JSH2Tech Catalog";
+            document.getElementById('listHeader').innerText = "Available Product Catalogue";
+            showView('v-list', document.getElementById('navList'));
+        }
+        filterAndRenderLayouts(fullData);
+    }
+
+    document.getElementById('guestBtn').onclick = () => {
+        currentRole = 'guest';
+        document.getElementById('authSection').classList.add('hidden');
+        document.getElementById('sidebar').classList.remove('hidden');
+        document.getElementById('mainContent').classList.remove('hidden');
+        configureUIVisibility();
+        initDataSync();
+    };
+
+    // --- GLOBAL SCOPE WINDOW BRIDGES ---
+    window.showView = (id, el) => {
+        document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        if(el) el.classList.add('active');
+    };
+
+    window.logout = () => {
+        if (currentRole === 'admin') {
+            signOut(auth);
+        } else {
+            document.getElementById('authSection').classList.remove('hidden');
+            document.getElementById('sidebar').classList.add('hidden');
+            document.getElementById('mainContent').classList.add('hidden');
+        }
+    };
+
+    window.deleteItem = (id) => {
+        if(confirm("Permanently delete this cloud record?")) remove(ref(db, 'inventory/'+id));
+    };
+
+    window.editItem = (id) => {
+        const item = fullData.find(x => x.id === id);
+        if(!item) return;
+        
+        document.getElementById('m_editId').value = id;
+        document.getElementById('m_pName').value = item.name || '';
+        document.getElementById('m_pCategory').value = item.category || 'Laptop';
+        document.getElementById('m_pStatus').value = item.status || 'available';
+        document.getElementById('m_pDate').value = item.date || '';
+        document.getElementById('m_qty').value = item.qty || 0;
+        document.getElementById('m_bPrice').value = item.buy || 0;
+        document.getElementById('m_sPrice').value = item.sell || 0;
+        document.getElementById('m_pDetails').value = item.details || '';
+        
+        // Render existing saved images inside modal container previews
+        editModalBase64Images = item.images ? [...item.images] : [];
+        const previewContainer = document.getElementById('modalPhotoPreviewContainer');
+        previewContainer.innerHTML = '';
+        editModalBase64Images.forEach(imgData => {
+            const img = document.createElement('img');
+            img.src = imgData;
+            img.classList.add('preview-img');
+            previewContainer.appendChild(img);
+        });
+
+        document.getElementById('m_pPhotos').value = ''; // Clean selector state
+        document.getElementById('editModal').classList.remove('hidden');
+    };
+
+    window.closeEditModal = () => {
+        document.getElementById('editModal').classList.add('hidden');
+    };
+
+    // --- INTERACTIVE DETAILS VIEW MODAL FOR GUESTS ---
+    window.openDetailsModal = (id) => {
+        const item = fullData.find(x => x.id === id);
+        if(!item) return;
+
+        document.getElementById('d_pName').innerText = item.name || 'Product Details';
+        document.getElementById('d_pCategory').innerText = item.category || 'Unassigned';
+        document.getElementById('d_pPrice').innerText = "₱" + (item.sell || 0).toLocaleString(undefined, {minimumFractionDigits: 2});
+        document.getElementById('d_pDetails').innerText = item.details || 'No catalog specifications provided.';
+
+        const mainImg = document.getElementById('d_mainImg');
+        const thumbContainer = document.getElementById('d_thumbContainer');
+        thumbContainer.innerHTML = '';
+
+        if(item.images && item.images.length > 0) {
+            mainImg.src = item.images[0];
+            mainImg.classList.remove('hidden');
+            
+            item.images.forEach((imgBase64, index) => {
+                const thumb = document.createElement('img');
+                thumb.src = imgBase64;
+                thumb.classList.add('preview-img');
+                thumb.onclick = () => { mainImg.src = imgBase64; };
+                thumbContainer.appendChild(thumb);
+            });
+        } else {
+            mainImg.src = '';
+            mainImg.classList.add('hidden');
+        }
+
+        document.getElementById('buyBtn').onclick = () => {
+            sendPurchaseInquiry(item.name, item.category, item.sell);
+        };
+
+        document.getElementById('detailsModal').classList.remove('hidden');
+    };
+
+    window.closeDetailsModal = () => {
+        document.getElementById('detailsModal').classList.add('hidden');
+    };
+
+    function sendPurchaseInquiry(name, category, price) {
+        const recipient = "hopeband22@gmail.com";
+        const subject = encodeURIComponent(`Purchase Inquiry Order: ${name}`);
+        const body = encodeURIComponent(`Hello JSH2Tech,\n\nI want to purchase the following item found on your catalog:\n\nProduct Name: ${name}\nCategory: ${category}\nListed Price: ₱${(price || 0).toLocaleString()}\n\nPlease verify availability and provide payment details.\n\nThank you!`);
+        
+        window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${recipient}&su=${subject}&body=${body}`, '_blank');
+    }
+
+    // --- AUTH BACKEND ROUTINES ---
+    const authBtn = document.getElementById('authBtn');
+    document.getElementById('toggleAuth').onclick = () => {
+        isLogin = !isLogin;
+        document.getElementById('authTitle').innerText = isLogin ? "Cloud Login" : "Admin Signup";
+        authBtn.innerText = isLogin ? "Sign In" : "Register Admin";
+    };
+
+    authBtn.onclick = () => {
+        const e = document.getElementById('authEmail').value;
+        const p = document.getElementById('authPwd').value;
+        if(isLogin) signInWithEmailAndPassword(auth, e, p).catch(err => alert(err.message));
+        else createUserWithEmailAndPassword(auth, e, p).catch(err => alert(err.message));
+    };
+
+    onAuthStateChanged(auth, (user) => {
+        const authView = document.getElementById('authSection');
+        const sidebar = document.getElementById('sidebar');
+        const main = document.getElementById('mainContent');
+        if(user) {
+            currentRole = 'admin';
+            authView.classList.add('hidden');
+            sidebar.classList.remove('hidden');
+            main.classList.remove('hidden');
+            configureUIVisibility();
+            initDataSync();
+        } else if (currentRole === 'admin') {
+            authView.classList.remove('hidden');
+            sidebar.classList.add('hidden');
+            main.classList.add('hidden');
+        }
+    });
+
+    function initDataSync() {
+        onValue(inventoryRef, (snap) => {
+            const data = snap.val();
+            fullData = [];
+            for(let key in data) fullData.push({ id: key, ...data[key] });
+            renderDashboard();
+        });
+    }
+
+    // --- DATA MUTATION ACTIONS ---
+    document.getElementById('actionBtn').onclick = () => {
+        const name = document.getElementById('pName').value;
+        const category = document.getElementById('pCategory').value;
+        const status = document.getElementById('pStatus').value;
+        const date = document.getElementById('pDate').value;
+        const b = parseFloat(document.getElementById('bPrice').value) || 0;
+        const s = parseFloat(document.getElementById('sPrice').value) || 0;
+        const q = parseInt(document.getElementById('qty').value) || 0;
+        const details = document.getElementById('pDetails').value;
+
+        if(!name) return alert("Please specify a valid product name.");
+        
+        const payload = { name, category, status, date, buy: b, sell: s, qty: q, details, images: currentBase64Images, profit: (s - b) * q };
+        
+        push(inventoryRef, payload).then(() => {
+            alert("Stock Cloud Registry Complete!");
+            document.querySelectorAll('#v-add input').forEach(i => i.value = '');
+            document.getElementById('pDetails').value = '';
+            document.getElementById('pStatus').value = 'available';
+            document.getElementById('photoPreviewContainer').innerHTML = '';
+            currentBase64Images = [];
+        });
+    };
+
+    document.getElementById('saveEditBtn').onclick = () => {
+        const id = document.getElementById('m_editId').value;
+        const name = document.getElementById('m_pName').value;
+        const category = document.getElementById('m_pCategory').value;
+        const status = document.getElementById('m_pStatus').value;
+        const date = document.getElementById('m_pDate').value;
+        const b = parseFloat(document.getElementById('m_bPrice').value) || 0;
+        const s = parseFloat(document.getElementById('m_sPrice').value) || 0;
+        const q = parseInt(document.getElementById('m_qty').value) || 0;
+        const details = document.getElementById('m_pDetails').value;
+
+        // Overwrites or updates structural mutations including active media images
+        const payload = { name, category, status, date, buy: b, sell: s, qty: q, details, images: editModalBase64Images, profit: (s - b) * q };
+        
+        update(ref(db, 'inventory/' + id), payload).then(() => { window.closeEditModal(); });
+    };
+
+    // --- LIVE FILTER CONTROLS ---
+    document.getElementById('searchBar').oninput = (e) => {
+        const val = e.target.value.toLowerCase();
+        const filtered = fullData.filter(i => 
+            i.name.toLowerCase().includes(val) || 
+            (i.details && i.details.toLowerCase().includes(val)) ||
+            i.category.toLowerCase().includes(val)
+        );
+        filterAndRenderLayouts(filtered);
+    };
+
+    function renderDashboard() {
+        filterAndRenderLayouts(fullData);
+        renderHistory(fullData);
+        
+        let pos = 0, neg = 0, monthly = {};
+        fullData.forEach(i => {
+            const p = i.profit || 0;
+            if(p >= 0) pos += p; else neg += p;
+            const d = new Date(i.date || Date.now());
+            const key = d.getFullYear() + "-" + (d.getMonth()+1);
+            if(!monthly[key]) monthly[key] = { p: 0, label: d.toLocaleString('default', {month:'short', year:'2-digit'}) };
+            monthly[key].p += p;
+        });
+
+        document.getElementById('kpi-pos').innerText = "₱" + pos.toLocaleString();
+        document.getElementById('kpi-neg').innerText = "₱" + Math.abs(neg).toLocaleString();
+        document.getElementById('kpi-net').innerText = "₱" + (pos+neg).toLocaleString();
+
+        const mGrid = document.getElementById('monthlyGrid');
+        mGrid.innerHTML = '';
+        Object.keys(monthly).sort().reverse().forEach(k => {
+            mGrid.innerHTML += `
+                <div class="kpi-card" style="min-width: 140px; text-align: center; padding: 15px;">
+                    <h4 style="margin:0; font-size: 0.75rem;">${monthly[k].label}</h4>
+                    <p style="margin: 5px 0 0; font-weight:700; color:var(--primary)">₱${monthly[k].p.toLocaleString()}</p>
+                </div>`;
+        });
+    }
+
+    // --- CONDITIONAL VIEWPORTS ROUTING ENGINE ---
+    function filterAndRenderLayouts(items) {
+        if(currentRole === 'admin') {
+            renderAdminTable(items);
+        } else {
+            const publicAvailableItems = items.filter(i => i.qty >= 1 && i.qty <= 100000 && i.status !== 'sold');
+            renderGuestCatalog(publicAvailableItems);
+        }
+    }
+
+    function renderAdminTable(data) {
+        const tbody = document.getElementById('inventoryBody');
+        tbody.innerHTML = '';
+        
+        data.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(i => {
+            const row = tbody.insertRow();
+            let imageSection = '';
+            if(i.images && i.images.length > 0){
+                imageSection = `<div class="preview-container" style="margin-bottom:8px;">`;
+                i.images.forEach(imgBase64 => {
+                    imageSection += `<img src="${imgBase64}" class="preview-img" style="width:40px; height:40px;" />`;
+                });
+                imageSection += `</div>`;
+            }
+
+            const statusLabel = (i.status === 'sold') ? 
+                `<span class="badge badge-danger">Sold Out</span>` : 
+                `<span class="badge badge-success">In Stock</span>`;
+
+            row.innerHTML = `
+                <td>
+                    ${imageSection}
+                    <strong>${i.name}</strong><br>
+                    <small style="color:var(--text-muted); display:block; max-width:300px;">${i.details || 'No catalog details.'}</small>
+                </td>
+                <td>₱${(i.buy || 0).toLocaleString()}</td>
+                <td>₱${(i.sell || 0).toLocaleString()}</td>
+                <td><span class="badge badge-primary">${i.category || 'Unassigned'}</span></td>
+                <td>${i.date || '---'}</td>
+                <td>
+                    <strong>${i.qty} Units</strong><br>
+                    <div style="margin-top: 4px;">${statusLabel}</div>
+                </td>
+                <td>
+                    <button class="btn" style="background:#f1f5f9; color:var(--warning); padding:6px 10px; margin-bottom:2px;" onclick="editItem('${i.id}')"><i class="fas fa-edit"></i></button>
+                    <button class="btn" style="background:#f1f5f9; color:var(--danger); padding:6px 10px;" onclick="deleteItem('${i.id}')"><i class="fas fa-trash"></i></button>
+                </td>
+            `;
+        });
+    }
+
+    function renderGuestCatalog(data) {
+        const container = document.getElementById('guestCatalogContainer');
+        container.innerHTML = '';
+
+        if(data.length === 0) {
+            container.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 40px;">No available stock matching your search filters.</p>`;
+            return;
+        }
+
+        data.forEach(i => {
+            const card = document.createElement('div');
+            card.classList.add('catalog-card');
+            card.onclick = () => openDetailsModal(i.id);
+
+            let imgTag = `<div class="catalog-img-placeholder"><i class="fa-regular fa-image"></i></div>`;
+            if(i.images && i.images.length > 0) {
+                imgTag = `<img src="${i.images[0]}" alt="Product catalog cover">`;
+            }
+
+            card.innerHTML = `
+                <div class="catalog-img-frame">${imgTag}</div>
+                <div class="catalog-info">
+                    <span class="badge badge-primary" style="margin-bottom: 8px;">${i.category || 'Product'}</span>
+                    <h3 class="catalog-title">${i.name}</h3>
+                    <p class="catalog-desc">${i.details || 'Click to view complete configurations and technical details.'}</p>
+                    <div class="catalog-footer">
+                        <div class="catalog-price">₱${(i.sell || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}</div>
+                        <span style="font-size: 0.8rem; font-weight:600; color: var(--success);"><i class="fa-solid fa-circle-check"></i> Available</span>
+                    </div>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    function renderHistory(data) {
+        const hbody = document.getElementById('historyBody');
+        if(!hbody) return;
+        hbody.innerHTML = '';
+        
+        data.slice(0, 15).forEach(i => {
+            const row = hbody.insertRow();
+            const profitVal = i.profit || 0;
+            row.innerHTML = `
+                <td>${i.date || 'N/A'}</td>
+                <td><strong>${i.name}</strong><br><small style="color:var(--text-muted)">Qty: ${i.qty}</small></td>
+                <td style="color: ${profitVal >= 0 ? 'var(--success)' : 'var(--danger)'}; font-weight:600;">₱${profitVal.toLocaleString()}</td>
+            `;
+        });
+    }
+</script>
+</body>
+</html>
