@@ -11,17 +11,21 @@
 
     <style>
         :root {
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --sidebar: #0f172a;
-            --bg: #f8fafc;
-            --card: #ffffff;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --success: #10b981;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --info: #06b6d4;
+            /* Tailored Directly from the JSH2TECH Logo */
+            --bg-dark: #0b0f19;            /* Deep Obsidian Base Space background */
+            --sidebar: #0f172a;            /* Dark Tech Blue Gray Sidebar background */
+            --primary: #00b4d8;            /* Logo Electric Cyan Accent */
+            --primary-glow: rgba(0, 180, 216, 0.15);
+            --primary-dark: #0077b6;       /* Deeper Cyan for deep hover links */
+            --warning: #ff6b00;            /* Logo Neon Orange Contrast Accent */
+            --warning-glow: rgba(255, 107, 0, 0.2);
+            --danger: #ef4444;             /* System Alert Red */
+            --success: #10b981;            /* Standard Green Validation Tag */
+            --bg: #f8fafc;                 /* Content Base Canvas background */
+            --card: #ffffff;               /* Workspace Cards background */
+            --text-main: #0f172a;          /* Rich Deep Slate Core text */
+            --text-muted: #64748b;         /* Meta Muted secondary labels text */
+            --border-color: #e2e8f0;       /* Grid Divider lines layout */
         }
 
         * { box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -38,14 +42,20 @@
             height: 100vh;
             transition: all 0.3s;
             z-index: 1000;
+            border-right: 2px solid var(--bg-dark);
         }
         .sidebar-header {
             padding: 30px 20px;
             text-align: center;
             font-weight: 700;
-            font-size: 1.2rem;
-            letter-spacing: 1px;
-            border-bottom: 1px solid #1e293b;
+            font-size: 1.3rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #ffffff;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .sidebar-header span {
+            color: var(--warning); /* Split tone styling matching the logo branding signature */
         }
         .nav-links { padding: 20px 0; flex-grow: 1; }
         .nav-item {
@@ -54,16 +64,21 @@
             align-items: center;
             cursor: pointer;
             color: #94a3b8;
-            transition: 0.2s;
+            transition: all 0.2s ease;
             text-decoration: none;
+            font-weight: 500;
         }
-        .nav-item i { margin-right: 15px; width: 20px; text-align: center; }
-        .nav-item:hover, .nav-item.active {
-            background-color: #1e293b;
-            color: white;
+        .nav-item i { margin-right: 15px; width: 20px; text-align: center; font-size: 1.1rem; }
+        .nav-item:hover {
+            color: #ffffff;
+            background-color: rgba(255, 255, 255, 0.03);
+        }
+        .nav-item.active {
+            background-color: rgba(0, 180, 216, 0.08);
+            color: var(--primary);
             border-left: 4px solid var(--primary);
         }
-        .logout-area { padding: 20px; border-top: 1px solid #1e293b; }
+        .logout-area { padding: 20px; border-top: 1px solid rgba(255, 255, 255, 0.05); }
 
         /* Main Content Area */
         .main-content {
@@ -78,129 +93,109 @@
         .view-section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Auth Screen */
+        /* Auth Screen Portal Layer */
         #authSection {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg); z-index: 9999; display: flex; align-items: center; justify-content: center;
+            background: radial-gradient(circle at center, #111827 0%, var(--bg-dark) 100%); 
+            z-index: 9999; display: flex; align-items: center; justify-content: center;
         }
         .auth-card {
-            background: white; padding: 40px; border-radius: 20px;
-            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); width: 100%; max-width: 400px;
+            background: #1e293b; padding: 45px 40px; border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); width: 100%; max-width: 420px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
+        .auth-card h2 { color: #ffffff; font-weight: 700; font-size: 1.7rem; text-align: center; margin-top: 0; letter-spacing: 1px; }
+        .auth-card h2 span { color: var(--warning); }
+        .auth-card label { color: #94a3b8; }
 
-        /* KPI Cards */
+        /* KPI Dashboard Metrics Grid */
         .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 25px; margin-bottom: 30px; }
         .kpi-card {
             background: var(--card); padding: 25px; border-radius: 16px;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.02); border: 1px solid var(--border-color);
         }
-        .kpi-card h3 { margin: 0; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; }
-        .kpi-card .value { font-size: 1.8rem; font-weight: 700; margin: 10px 0; }
+        .kpi-card h3 { margin: 0; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .kpi-card .value { font-size: 1.8rem; font-weight: 700; margin: 10px 0; color: var(--text-main); }
 
-        /* Form & Inputs */
-        .form-card { background: white; padding: 30px; border-radius: 16px; border: 1px solid #e2e8f0; max-width: 800px; }
+        /* Forms Layout Sheet Architecture */
+        .form-card { background: white; padding: 35px; border-radius: 18px; border: 1px solid var(--border-color); max-width: 800px; box-shadow: 0 4px 12px rgba(0,0,0,0.01); }
         .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .full-width { grid-column: span 2; }
+        label { display: block; margin-bottom: 6px; font-size: 0.8rem; font-weight: 600; color: var(--text-main); text-transform: uppercase; letter-spacing: 0.5px; }
         input, select, textarea {
             width: 100%; padding: 12px 15px; border-radius: 8px;
-            border: 1px solid #e2e8f0; outline: none; transition: 0.2s; font-size: 0.95rem;
+            border: 1px solid var(--border-color); outline: none; transition: 0.2s; font-size: 0.95rem; background: #f8fafc; color: var(--text-main);
         }
-        input:focus, select:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
+        input:focus, select:focus, textarea:focus { border-color: var(--primary); background: #ffffff; box-shadow: 0 0 0 3px var(--primary-glow); }
+        
+        /* Buttons Identity Configurations Matrix */
         .btn {
-            padding: 12px 25px; border-radius: 8px; border: none; font-weight: 600;
-            cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center;
+            padding: 12px 25px; border-radius: 8px; border: none; font-weight: 700;
+            cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; justify-content: center; text-transform: uppercase; font-size: 0.82rem; letter-spacing: 0.5px;
         }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: var(--primary-dark); }
-        .btn-danger { background: var(--danger); color: white; padding: 8px 12px; }
-        .btn-info { background: var(--info); color: white; padding: 8px 12px; }
+        .btn-primary { background: var(--primary); color: #0b0f19; }
+        .btn-primary:hover { background: var(--primary-dark); color: white; transform: translateY(-1px); }
+        .btn-danger { background: var(--warning); color: white; padding: 12px 25px; }
+        .btn-danger:hover { background: #e05e00; transform: translateY(-1px); }
+        .btn-info { background: #334155; color: white; padding: 12px 25px; border: 1px solid rgba(255,255,255,0.05); }
+        .btn-info:hover { background: #1e293b; }
         .btn-warning { background: var(--warning); color: white; padding: 8px 12px; }
+        .btn-warning:hover { background: #e05e00; }
 
-        /* Table Styling (Admin View) */
-        .table-container { background: white; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; }
+        /* Spreadsheet Layout Grid Customization */
+        .table-container { background: white; border-radius: 16px; border: 1px solid var(--border-color); overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.01); }
         table { width: 100%; border-collapse: collapse; }
-        th { background: #f1f5f9; padding: 15px; text-align: left; font-size: 0.85rem; color: var(--text-muted); }
-        td { padding: 15px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+        th { background: #f1f5f9; padding: 16px; text-align: left; font-size: 0.8rem; color: var(--text-main); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid var(--border-color); }
+        td { padding: 16px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; font-size: 0.95rem; }
+        tr:hover td { background-color: #f8fafc; }
 
-        /* Product Catalog Grid (Guest View) */
-        .catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; margin-top: 20px; }
+        /* Public Storefront Catalog View Cards Grid */
+        .catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 30px; margin-top: 20px; }
         .catalog-card { 
-            background: white; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; 
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); transition: transform 0.2s, box-shadow 0.2s; cursor: pointer;
+            background: white; border-radius: 20px; border: 1px solid var(--border-color); overflow: hidden; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.01); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;
         }
-        .catalog-card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0,0,0,0.08); }
-        .catalog-img-frame { width: 100%; height: 200px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;}
-        .catalog-img-frame img { width: 100%; height: 100%; object-fit: cover; }
-        .catalog-img-placeholder { color: #94a3b8; font-size: 3rem; }
-        .catalog-info { padding: 20px; }
-        .catalog-title { font-size: 1.1rem; font-weight: 700; margin: 0 0 8px 0; color: var(--text-main); }
-        .catalog-desc { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; word-break: break-word; }
-        .catalog-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f1f5f9; padding-top: 15px; }
-        .catalog-price { font-size: 1.25rem; font-weight: 700; color: var(--primary); }
+        .catalog-card:hover { transform: translateY(-6px); box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.08); border-color: var(--primary); }
+        .catalog-img-frame { width: 100%; height: 210px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; border-bottom: 1px solid var(--border-color); }
+        .catalog-img-frame img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+        .catalog-card:hover .catalog-img-frame img { transform: scale(1.04); }
+        .catalog-img-placeholder { color: #cbd5e1; font-size: 3.5rem; }
+        .catalog-info { padding: 24px; }
+        .catalog-title { font-size: 1.15rem; font-weight: 700; margin: 0 0 10px 0; color: var(--text-main); line-height: 1.3; }
+        .catalog-desc { font-size: 0.88rem; color: var(--text-muted); margin-bottom: 20px; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .catalog-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f1f5f9; padding-top: 18px; }
+        .catalog-price { font-size: 1.35rem; font-weight: 700; color: var(--text-main); }
 
-        /* Badge design */
-        .badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
-        .badge-primary { background: #e0e7ff; color: #4338ca; }
+        /* Identity Badge Matrix */
+        .badge { display: inline-block; padding: 5px 10px; border-radius: 6px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .badge-primary { background: rgba(0, 180, 216, 0.1); color: var(--primary-dark); border: 1px solid rgba(0, 180, 216, 0.2); }
         .badge-success { background: #d1fae5; color: #065f46; }
-        .badge-danger { background: #fee2e2; color: #991b1b; }
+        .badge-danger { background: var(--warning-glow); color: var(--warning); border: 1px solid rgba(255,107,0,0.1); }
 
-        /* Photo Previews */
-        .preview-container { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
-        .preview-img { width: 60px; height: 60px; border-radius: 6px; object-fit: cover; border: 1px solid #cbd5e1; cursor: pointer; }
+        /* Media Previews Layout Box */
+        .preview-container { display: flex; gap: 10px; margin-top: 10px; }
+        .preview-img { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border-color); transition: all 0.2s ease; }
+        .preview-img:hover { border-color: var(--primary); transform: scale(1.05); }
 
-        /* Modal Styling */
+        /* Modal Overlay Screens Architecture */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.7); display: flex; align-items: center;
-            justify-content: center; z-index: 2000; backdrop-filter: blur(4px);
+            background: rgba(11, 15, 25, 0.7); display: flex; align-items: center;
+            justify-content: center; z-index: 2000; backdrop-filter: blur(8px);
         }
         .modal-card {
-            background: white; padding: 30px; border-radius: 20px;
-            width: 90%; max-width: 650px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
-            max-height: 90vh; overflow-y: auto;
+            background: white; padding: 35px; border-radius: 24px;
+            width: 95%; max-width: 680px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.3);
+            max-height: 85vh; overflow-y: auto; border: 1px solid var(--border-color);
         }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); }
+        .modal-header h3 { margin: 0; font-size: 1.3rem; font-weight: 700; color: var(--text-main); }
+        .close-btn { background: none; border: none; font-size: 1.6rem; cursor: pointer; color: var(--text-muted); transition: color 0.2s; }
+        .close-btn:hover { color: var(--warning); }
 
-        /* Detail View Modal Elements */
-        .modal-gallery { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
-        .main-modal-img { width: 100%; height: 300px; object-fit: contain; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; }
-
-        /* Pagination Control System UI */
-        .pagination-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-            margin-top: 30px;
-            padding: 10px;
-        }
-        .pagination-btn {
-            background-color: var(--card);
-            border: 1px solid #e2e8f0;
-            color: var(--text-main);
-            padding: 8px 16px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .pagination-btn:hover:not(:disabled) {
-            background-color: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-        .pagination-btn:disabled {
-            background-color: #f1f5f9;
-            color: #cbd5e1;
-            cursor: not-allowed;
-        }
-        .pagination-info {
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            font-weight: 500;
-        }
+        /* Product Gallery Specifications */
+        .modal-gallery { display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px; }
+        .main-modal-img { width: 100%; height: 320px; object-fit: contain; background: #f8fafc; border-radius: 14px; border: 1px solid var(--border-color); }
 
         .hidden { display: none !important; }
         
@@ -217,27 +212,29 @@
 
 <div id="authSection">
     <div class="auth-card">
-        <h2 id="authTitle" style="margin-bottom: 5px;">JSH2Tech Portal</h2>
-        <p style="color: var(--text-muted); margin-bottom: 25px;" id="authDesc">Enter admin credentials or open public view.</p>
+        <h2>JSH2<span>Tech</span></h2>
+        <p style="color: #94a3b8; margin-bottom: 30px; text-align: center; font-size: 0.92rem;" id="authDesc">Cloud Logistics Array Authentication Gateway</p>
         
         <div id="credentialsForm">
-            <input type="email" id="authEmail" placeholder="Email Address">
-            <input type="password" id="authPwd" placeholder="Password" style="margin-top: 10px;">
-            <button class="btn btn-primary" id="authBtn" style="width: 100%; margin-top: 20px;">Sign In as Admin</button>
-            <p style="text-align: center; margin-top: 15px; font-size: 0.9rem;">
-                <a href="#" id="toggleAuth" style="color: var(--primary); text-decoration: none;">Request Admin Access</a>
+            <label>Operator Workspace Email</label>
+            <input type="email" id="authEmail" placeholder="admin@jsh2tech.com" style="background:#1e293b; color:white; border-color: rgba(255,255,255,0.1);">
+            <label style="margin-top: 15px;">Secure Passphrase Encryption</label>
+            <input type="password" id="authPwd" placeholder="••••••••••••" style="background:#1e293b; color:white; border-color: rgba(255,255,255,0.1);">
+            <button class="btn btn-primary" id="authBtn" style="width: 100%; margin-top: 25px; padding: 14px;">Verify Operator Handshake</button>
+            <p style="text-align: center; margin-top: 20px; font-size: 0.88rem;">
+                <a href="#" id="toggleAuth" style="color: var(--primary); font-weight: 600; text-decoration: none;">Request Access Parameters</a>
             </p>
         </div>
 
-        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e2e8f0; text-align: center;">
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">Looking for Laptop, Ram and Sorage?</p>
-            <button class="btn btn-info" id="guestBtn" style="width: 100%; background-color: #0284c7;"><i class="fas fa-eye" style="margin-right: 8px;"></i>View our Available Product List</button>
+        <div style="margin-top: 25px; padding-top: 25px; border-top: 1px solid rgba(255,255,255,0.08); text-align: center;">
+            <p style="font-size: 0.88rem; color: #94a3b8; margin-bottom: 15px;">Looking for technical units or legacy components catalog?</p>
+            <button class="btn btn-info" id="guestBtn" style="width: 100%; padding: 14px;"><i class="fas fa-eye" style="margin-right: 10px;"></i>Explore Stock Catalog</button>
         </div>
     </div>
 </div>
 
 <nav class="sidebar hidden" id="sidebar">
-    <div class="sidebar-header" id="sidebarBrand">JSH2Tech</div>
+    <div class="sidebar-header" id="sidebarBrand">JSH2<span>Tech</span></div>
     <div class="nav-links">
         <div class="nav-item admin-only active" id="navDash" onclick="showView('v-dash', this)">
             <i class="fas fa-chart-pie"></i><span>Dashboard</span>
@@ -252,10 +249,10 @@
             <i class="fas fa-qrcode"></i><span>QR Scanner</span>
         </div>
         <div class="nav-item admin-only" id="navHist" onclick="showView('v-history', this)">
-            <i class="fas fa-history"></i><span>History</span>
+            <i class="fas fa-history"></i><span>History Matrix</span>
         </div>
         <div class="nav-item" id="navAbout" onclick="showView('v-about', this)">
-            <i class="fas fa-info-circle"></i><span>About Us</span>
+            <i class="fas fa-info-circle"></i><span>About Hub</span>
         </div>
     </div>
     <div class="logout-area">
@@ -268,131 +265,96 @@
 <main class="main-content hidden" id="mainContent">
     
     <section id="v-dash" class="view-section admin-only active">
-        <h1 style="margin-top: 0;">Sales Overview</h1>
+        <h1 style="margin-top: 0; font-weight: 700;">System Architecture Overview</h1>
         <div class="kpi-grid">
             <div class="kpi-card" style="border-left: 5px solid var(--success);">
-                <h3>Total Profit</h3>
+                <h3>Total Gross Profit Yield</h3>
                 <div class="value" id="kpi-pos" style="color: var(--success);">₱0</div>
             </div>
-            <div class="kpi-card" style="border-left: 5px solid var(--danger);">
-                <h3>Total Loss</h3>
-                <div class="value" id="kpi-neg" style="color: var(--danger);">₱0</div>
+            <div class="kpi-card" style="border-left: 5px solid var(--warning);">
+                <h3>Total Operational Loss</h3>
+                <div class="value" id="kpi-neg" style="color: var(--warning);">₱0</div>
             </div>
             <div class="kpi-card" style="border-left: 5px solid var(--primary);">
-                <h3>Net Revenue</h3>
-                <div class="value" id="kpi-net">₱0</div>
+                <h3>Net Capital Valuation</h3>
+                <div class="value" id="kpi-net" style="color: var(--primary-dark);">₱0</div>
             </div>
         </div>
-        <h3>Monthly Sales Projection</h3>
+        <h3 style="font-weight: 700; margin-bottom:15px;">Refurbishment Operational Yield Matrix</h3>
         <div id="monthlyGrid" class="monthly-scroll-container" style="display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px;"></div>
     </section>
 
     <section id="v-add" class="view-section admin-only">
-        <h1>Inventory Management</h1>
+        <h1>Stock Registry Verification</h1>
         <div class="form-card">
-            <h3 id="formTitle">Register New Stock</h3>
+            <h3 id="formTitle" style="margin-top:0; margin-bottom:25px; font-weight:700;">Commit New Hardware Node</h3>
             <div class="input-grid">
                 <div class="full-width">
-                    <label style="font-size: 0.8rem; font-weight: 600;">Product Name</label>
-                    <input type="text" id="pName" placeholder="e.g. HP EliteBook 840 G5">
+                    <label>Hardware Model Label / Name</label>
+                    <input type="text" id="pName" placeholder="e.g. Dell Precision M6600 Workstation">
                 </div>
                 <div>
-                    <label style="font-size: 0.8rem; font-weight: 600;">Category</label>
+                    <label>Category Blueprint Allocation</label>
                     <select id="pCategory">
-                        <option value="Laptop">Laptop</option>
-                        <option value="Ram">RAM</option>
-                        <option value="Storage">Storage</option>
+                        <option value="Laptop">Laptop Workstation</option>
+                        <option value="Ram">RAM Modulating Kit</option>
+                        <option value="Storage">Solid State Storage</option>
                     </select>
                 </div>
                 <div>
-                    <label style="font-size: 0.8rem; font-weight: 600;">Availability Status</label>
+                    <label>Sync Visibility Status</label>
                     <select id="pStatus">
-                        <option value="available">Available</option>
-                        <option value="sold">Sold</option>
+                        <option value="available">Available / Deploy Active</option>
+                        <option value="sold">Sold / Vault Record</option>
                     </select>
                 </div>
                 <div>
-                    <label style="font-size: 0.8rem; font-weight: 600;">Transaction Date</label>
+                    <label>Stock Registry Timestamp</label>
                     <input type="date" id="pDate">
                 </div>
                 <div>
-                    <label style="font-size: 0.8rem; font-weight: 600;">Quantity</label>
+                    <label>Initial Hardware Array Units Count</label>
                     <input type="number" id="qty" placeholder="0">
                 </div>
                 <div>
-                    <label style="font-size: 0.8rem; font-weight: 600;">Cost Price (₱)</label>
+                    <label>Base Acquisition Cost Capital (₱)</label>
                     <input type="number" id="bPrice" placeholder="0.00">
                 </div>
                 <div>
-                    <label style="font-size: 0.8rem; font-weight: 600;">Sale Price (₱)</label>
+                    <label>Market Release Retail Value (₱)</label>
                     <input type="number" id="sPrice" placeholder="0.00">
                 </div>
                 <div class="full-width">
-                    <label style="font-size: 0.8rem; font-weight: 600;">Product Photos (Max 3)</label>
-                    <input type="file" id="pPhotos" multiple accept="image/*" style="padding: 8px;">
+                    <label>Hardware Architecture Snapshots (Max 3)</label>
+                    <input type="file" id="pPhotos" multiple accept="image/*" style="padding: 8px; background: #ffffff;">
                     <div id="photoPreviewContainer" class="preview-container"></div>
                 </div>
                 <div class="full-width">
-                    <label style="font-size: 0.8rem; font-weight: 600;">Product Details / Specifications</label>
-                    <textarea id="pDetails" rows="3" placeholder="Enter configuration specifications, warranty structure details, and conditions details..."></textarea>
+                    <label>Detailed Build Specifications / Diagnostics Configuration logs</label>
+                    <textarea id="pDetails" rows="4" placeholder="Specify CPU tier setups, architecture layouts, panel damage status, and technical features..."></textarea>
                 </div>
             </div>
-            <button class="btn btn-primary" id="actionBtn" style="margin-top: 25px; width: 100%;">Save Product to Cloud</button>
+            <button class="btn btn-primary" id="actionBtn" style="margin-top: 30px; width: 100%; padding: 15px;">Commit Record To Secure Cloud Matrix</button>
         </div>
     </section>
 
     <section id="v-list" class="view-section">
-        <h1 id="listHeader">Cloud Inventory List</h1>
-        
-        <div class="search-container" style="margin-bottom: 25px; display: flex; flex-direction: column; gap: 15px;">
-            <input type="text" id="searchBar" placeholder="Search product catalogue or specs..." style="max-width: 400px; margin: 0;">
-            
-            <div class="filter-pills-group" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
-                <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);"><i class="fa-solid fa-filter"></i> Filter Specs:</span>
-                
-                <div style="width: 130px;">
-                    <select id="filterCpu" style="padding: 6px 10px; font-size: 0.85rem;">
-                        <option value="">All CPUs</option>
-                        <option value="i7">Core i7</option>
-                        <option value="i5">Core i5</option>
-                        <option value="Xeon">Xeon</option>
-                        <option value="AMD">AMD Ryzen</option>
-                    </select>
-                </div>
-
-                <div style="width: 130px;">
-                    <select id="filterRam" style="padding: 6px 10px; font-size: 0.85rem;">
-                        <option value="">All RAM</option>
-                        <option value="8GB">8GB</option>
-                        <option value="16GB">16GB</option>
-                        <option value="32GB">32GB</option>
-                    </select>
-                </div>
-
-                <div style="width: 130px;">
-                    <select id="filterScreen" style="padding: 6px 10px; font-size: 0.85rem;">
-                        <option value="">All Sizes</option>
-                        <option value="14">14" Display</option>
-                        <option value="15.6">15.6" Display</option>
-                        <option value="17.3">17.3" Unit</option>
-                    </select>
-                </div>
-                
-                <button id="btnClearFilters" class="btn" style="background: #e2e8f0; color: var(--text-main); padding: 6px 15px; font-size: 0.85rem; border-radius: 8px; font-weight:600;">Clear</button>
-            </div>
+        <h1 id="listHeader" style="font-weight: 700;">Cloud Infrastructure List</h1>
+        <div class="search-container" style="margin-bottom: 25px;">
+            <input type="text" id="searchBar" placeholder="Search system specifications, structural IDs or variants..." style="max-width: 450px; box-shadow: 0 2px 4px rgba(0,0,0,0.01);">
         </div>
         
         <div id="adminTableContainer" class="table-container admin-only">
             <table>
                 <thead>
                     <tr>
-                        <th>Product Details</th>
-                        <th>Cost Price</th>
-                        <th>Sale Price</th>
-                        <th>Category</th>
-                        <th>Date Stocked</th>
-                        <th>Status / Qty</th>
-                        <th>Actions</th>
+                        <th>Hardware Node Identity Specifications</th>
+                        <th>Acquisition Cost</th>
+                        <th>Valuation Release</th>
+                        <th>Structural Tag</th>
+                        <th>Registry Log Date</th>
+                        <th>Grid Array Balance</th>
+                        <th>System Access Keys</th>
                     </tr>
                 </thead>
                 <tbody id="inventoryBody"></tbody>
@@ -400,30 +362,24 @@
         </div>
 
         <div id="guestCatalogContainer" class="catalog-grid hidden"></div>
-
-        <div id="paginationModule" class="pagination-container">
-            <button id="btnPrevPage" class="pagination-btn" onclick="navigatePage(-1)"><i class="fas fa-chevron-left"></i> Prev</button>
-            <span id="pageInfoDetails" class="pagination-info">Page 1 of 1</span>
-            <button id="btnNextPage" class="pagination-btn" onclick="navigatePage(1)">Next <i class="fas fa-chevron-right"></i></button>
-        </div>
     </section>
 
     <section id="v-qr" class="view-section admin-only">
-        <h1>Quick Stock Scan</h1>
-        <p>Align the QR code within the frame to automatically fill product details.</p>
-        <button class="btn btn-primary" onclick="startScanner()"><i class="fas fa-camera" style="margin-right:10px;"></i> Open Camera</button>
-        <div id="reader"></div>
+        <h1>Quick Hardware Asset Scanner</h1>
+        <p style="color: var(--text-muted); margin-bottom:20px;">Align the product verification code QR grid cleanly inside the scanner layout window.</p>
+        <button class="btn btn-primary" onclick="startScanner()"><i class="fas fa-camera" style="margin-right:10px;"></i> Initialize Optical Cam Tracker</button>
+        <div id="reader" style="margin-top: 20px; border-radius:12px; overflow:hidden;"></div>
     </section>
 
     <section id="v-history" class="view-section admin-only">
-        <h1>Transaction History</h1>
+        <h1>Financial Transaction Ledger Matrix</h1>
         <div class="table-container">
             <table>
                 <thead>
                     <tr>
-                        <th>Timestamp / Date</th>
-                        <th>Product Name</th>
-                        <th>Net Margin Assessment</th>
+                        <th>Operational Timestamp</th>
+                        <th>Product Framework Identity</th>
+                        <th>Net Yield Margin Allocation Evaluation</th>
                     </tr>
                 </thead>
                 <tbody id="historyBody"></tbody>
@@ -432,10 +388,10 @@
     </section>
 
     <section id="v-about" class="view-section">
-        <h1>About JSH2Tech</h1>
+        <h1>About JSH2Tech Enterprise Systems</h1>
         <div class="form-card">
-            <p><strong>Version:</strong> 3.2 (Enterprise OpenAccess Edition)</p>
-            <p>JSH2Tech Cloud Inventory provides dynamic synchronization for admins and effortless communication pipelines for commercial buyers and clients.</p>
+            <p><strong>System Engine Build Build:</strong> 4.0 (Branded Logo Integration Edition)</p>
+            <p style="line-height:1.6;">JSH2Tech Cloud Systems Dashboard routes synchronized real-time hardware asset arrays for structural engineers while shaping lightweight inquiry communication tracks for downstream secondary workstation retail buyers.</p>
         </div>
     </section>
 </main>
@@ -443,78 +399,73 @@
 <div id="editModal" class="modal-overlay hidden">
     <div class="modal-card">
         <div class="modal-header">
-            <h3>Edit Product Record</h3>
+            <h3>Modify Node Vector Configuration</h3>
             <button class="close-btn" onclick="closeEditModal()">&times;</button>
         </div>
         <div class="input-grid">
             <div class="full-width">
-                <label style="font-size: 0.8rem;">Product Name</label>
+                <label>Hardware Asset Blueprint Name</label>
                 <input type="text" id="m_pName">
             </div>
             <div>
-                <label style="font-size: 0.8rem;">Category</label>
+                <label>Structural Category Group</label>
                 <select id="m_pCategory">
-                    <option value="Laptop">Laptop</option>
-                    <option value="Ram">RAM</option>
-                    <option value="Storage">Storage</option>
+                    <option value="Laptop">Laptop Workstation</option>
+                    <option value="Ram">RAM Modulating Kit</option>
+                    <option value="Storage">Solid State Storage</option>
                 </select>
             </div>
             <div>
-                <label style="font-size: 0.8rem;">Catalog Status</label>
+                <label>Active Matrix Grid Display Sync Status</label>
                 <select id="m_pStatus">
-                    <option value="available">Available</option>
-                    <option value="sold">Sold</option>
+                    <option value="available">Available / Deploy Active</option>
+                    <option value="sold">Sold / Vault Record</option>
                 </select>
             </div>
             <div>
-                <label style="font-size: 0.8rem;">Date</label>
+                <label>Logged Registry Timestamp</label>
                 <input type="date" id="m_pDate">
             </div>
             <div>
-                <label style="font-size: 0.8rem;">Quantity</label>
+                <label>Hardware Array Scale Count</label>
                 <input type="number" id="m_qty">
             </div>
             <div>
-                <label style="font-size: 0.8rem;">Cost (₱)</label>
+                <label>Acquisition Cost Capital (₱)</label>
                 <input type="number" id="m_bPrice">
             </div>
             <div>
-                <label style="font-size: 0.8rem;">Sale (₱)</label>
+                <label>Outbound Valuation Release (₱)</label>
                 <input type="number" id="m_sPrice">
             </div>
             <div class="full-width">
-                <label style="font-size: 0.8rem;">Modify Photos (Overwrites Old Photos - Max 3)</label>
-                <input type="file" id="m_pPhotos" multiple accept="image/*" style="padding: 8px;">
-                <div id="modalPreviewContainer" class="preview-container"></div>
-            </div>
-            <div class="full-width">
-                <label style="font-size: 0.8rem;">Product Details</label>
-                <textarea id="m_pDetails" rows="2"></textarea>
+                <label>Internal Technical Architecture Specifications logs</label>
+                <textarea id="m_pDetails" rows="3"></textarea>
             </div>
         </div>
         <input type="hidden" id="m_editId">
-        <button class="btn btn-primary" id="saveEditBtn" style="margin-top: 25px; width: 100%;">Update Cloud Record</button>
+        <button class="btn btn-primary" id="saveEditBtn" style="margin-top: 30px; width: 100%; padding: 14px;">Commit Cloud Parameter Changes</button>
     </div>
 </div>
 
 <div id="detailsModal" class="modal-overlay hidden">
     <div class="modal-card">
         <div class="modal-header">
-            <h3 id="d_pName" style="margin:0; font-size: 1.4rem;">Product Specifications</h3>
+            <h3 id="d_pName" style="font-size: 1.4rem;">Hardware Platform Verification Blueprint</h3>
             <button class="close-btn" onclick="closeDetailsModal()">&times;</button>
         </div>
         <div class="modal-gallery">
-            <img id="d_mainImg" src="" class="main-modal-img" alt="Product view display">
+            <img id="d_mainImg" src="" class="main-modal-img" alt="Hardware specifications interface array">
             <div id="d_thumbContainer" class="preview-container"></div>
         </div>
-        <div style="margin-bottom: 20px;">
-            <span id="d_pCategory" class="badge badge-primary" style="margin-bottom:10px;">Category</span>
-            <div style="font-size: 1.5rem; font-weight:700; color: var(--primary); margin: 5px 0 15px 0;" id="d_pPrice">₱0.00</div>
-            <h4 style="margin:0 0 8px 0; font-size:0.95rem; color: var(--text-muted)">Description & Specifications</h4>
-            <p id="d_pDetails" style="margin:0; font-size:0.95rem; line-height:1.6; color:var(--text-main); background:#f8fafc; padding:15px; border-radius:8px; border:1px solid #e2e8f0; white-space: pre-wrap;"></p>
+        <div style="margin-bottom: 25px;">
+            <span id="d_pCategory" class="badge badge-primary" style="margin-bottom:12px;">Component Class Tag</span>
+            <div style="font-size: 1.65rem; font-weight:700; color: var(--text-main); margin: 5px 0 15px 0;" id="d_pPrice">₱0.00</div>
+            <h4 style="margin:0 0 10px 0; font-size:0.9rem; color: var(--text-muted); text-transform: uppercase; letter-spacing:0.5px;">Verified Feature Manifest Specs Matrix</h4>
+            <p id="d_pDetails" style="margin:0; font-size:0.95rem; line-height:1.6; color:var(--text-main); background:#f8fafc; padding:18px; border-radius:12px; border:1px solid var(--border-color); white-space: pre-wrap;"></p>
         </div>
-        <button class="btn btn-primary" id="buyBtn" style="width: 100%; padding: 15px; font-size:1.05rem; background-color: #10b981;">
-            <i class="fa-solid fa-cart-shopping" style="margin-right:10px;"></i>Buy Now / Send Gmail Inquiry
+        <button class="btn btn-danger" id="buyBtn" style="width: 100%; padding: 16px; font-size:1rem;">
+            <i class="fa-solid fa-cart-shopping" style="margin-right:12px;"></i>Lock Unit Valuation / Request Outbound Order Inquiry via Gmail
         </button>
     </div>
 </div>
@@ -543,13 +494,8 @@
     let isLogin = true;
     let currentRole = 'guest'; 
     let currentBase64Images = [];
-    let editBase64Images = [];
 
-    // --- PAGINATION DATA TRACKERS ---
-    let currentPage = 1;
-    let itemsPerPage = 5; 
-
-    // --- PHOTO PROCESSING LOGIC (REGISTER) ---
+    // --- PHOTO ACQUISITION CORE STREAM ---
     document.getElementById('pPhotos').addEventListener('change', function(e) {
         const files = Array.from(e.target.files).slice(0, 3);
         currentBase64Images = [];
@@ -569,47 +515,24 @@
         });
     });
 
-    // --- PHOTO PROCESSING LOGIC (EDIT MODAL) ---
-    document.getElementById('m_pPhotos').addEventListener('change', function(e) {
-        const files = Array.from(e.target.files).slice(0, 3);
-        editBase64Images = [];
-        const previewContainer = document.getElementById('modalPreviewContainer');
-        previewContainer.innerHTML = '';
-
-        files.forEach(file => {
-            const reader = new FileReader();
-            reader.onload = function(evt) {
-                editBase64Images.push(evt.target.result);
-                const img = document.createElement('img');
-                img.src = evt.target.result;
-                img.classList.add('preview-img');
-                previewContainer.appendChild(img);
-            }
-            reader.readAsDataURL(file);
-        });
-    });
-
-    // --- GATEWAY LAYER ROUTING MIGRATIONS ---
+    // --- SYSTEMS PORTAL ROUTING ALGORITHM ---
     function configureUIVisibility() {
-        currentPage = 1; 
         if(currentRole === 'admin') {
-            itemsPerPage = 10; 
             document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
             document.getElementById('adminTableContainer').classList.remove('hidden');
             document.getElementById('guestCatalogContainer').classList.add('hidden');
-            document.getElementById('sidebarBrand').innerText = "JSH2Tech Admin";
-            document.getElementById('listHeader').innerText = "Inventory Management Workspace";
+            document.getElementById('sidebarBrand').innerHTML = "JSH2<span>Ops</span>";
+            document.getElementById('listHeader').innerText = "Logistics Allocation Matrix Workspace";
             showView('v-dash', document.getElementById('navDash'));
         } else {
-            itemsPerPage = 5; 
             document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden'));
             document.getElementById('adminTableContainer').classList.add('hidden');
             document.getElementById('guestCatalogContainer').classList.remove('hidden');
-            document.getElementById('sidebarBrand').innerText = "JSH2Tech Catalog";
-            document.getElementById('listHeader').innerText = "Available Product Catalogue";
+            document.getElementById('sidebarBrand').innerHTML = "JSH2<span>Tech</span>";
+            document.getElementById('listHeader').innerText = "Available Refurbished Hardware Registry";
             showView('v-list', document.getElementById('navList'));
         }
-        executeAdvancedFilter();
+        filterAndRenderLayouts(fullData);
     }
 
     document.getElementById('guestBtn').onclick = () => {
@@ -640,7 +563,7 @@
     };
 
     window.deleteItem = (id) => {
-        if(confirm("Permanently delete this cloud record?")) remove(ref(db, 'inventory/'+id));
+        if(confirm("Permanently wipe this framework vector record configuration from cloud matrices?")) remove(ref(db, 'inventory/'+id));
     };
 
     window.editItem = (id) => {
@@ -657,18 +580,6 @@
         document.getElementById('m_sPrice').value = item.sell || 0;
         document.getElementById('m_pDetails').value = item.details || '';
         
-        // Show existing images in the modal preview frame
-        editBase64Images = item.images || [];
-        const previewContainer = document.getElementById('modalPreviewContainer');
-        previewContainer.innerHTML = '';
-        editBase64Images.forEach(imgData => {
-            const img = document.createElement('img');
-            img.src = imgData;
-            img.classList.add('preview-img');
-            previewContainer.appendChild(img);
-        });
-
-        document.getElementById('m_pPhotos').value = ''; 
         document.getElementById('editModal').classList.remove('hidden');
     };
 
@@ -676,7 +587,7 @@
         document.getElementById('editModal').classList.add('hidden');
     };
 
-    // --- INTERACTIVE DETAILS VIEW MODAL FOR GUESTS ---
+    // --- GRAPHIC DETAILS MODAL INTERACTION ---
     window.openDetailsModal = (id) => {
         const item = fullData.find(x => x.id === id);
         if(!item) return;
@@ -684,7 +595,7 @@
         document.getElementById('d_pName').innerText = item.name || 'Product Details';
         document.getElementById('d_pCategory').innerText = item.category || 'Unassigned';
         document.getElementById('d_pPrice').innerText = "₱" + (item.sell || 0).toLocaleString(undefined, {minimumFractionDigits: 2});
-        document.getElementById('d_pDetails').innerText = item.details || 'No catalog specifications provided.';
+        document.getElementById('d_pDetails').innerText = item.details || 'No structural technical specifications logged.';
 
         const mainImg = document.getElementById('d_mainImg');
         const thumbContainer = document.getElementById('d_thumbContainer');
@@ -694,7 +605,7 @@
             mainImg.src = item.images[0];
             mainImg.classList.remove('hidden');
             
-            item.images.forEach((imgBase64) => {
+            item.images.forEach((imgBase64, index) => {
                 const thumb = document.createElement('img');
                 thumb.src = imgBase64;
                 thumb.classList.add('preview-img');
@@ -719,39 +630,18 @@
 
     function sendPurchaseInquiry(name, category, price) {
         const recipient = "hopeband22@gmail.com";
-        const subject = encodeURIComponent(`Purchase Inquiry Order: ${name}`);
-        const body = encodeURIComponent(`Hello JSH2Tech,\n\nI want to purchase the following item found on your catalog:\n\nProduct Name: ${name}\nCategory: ${category}\nListed Price: ₱${(price || 0).toLocaleString()}\n\nPlease verify availability and provide payment details.\n\nThank you!`);
+        const subject = encodeURIComponent(`Purchase Inquiry Order Request: ${name}`);
+        const body = encodeURIComponent(`Hello JSH2Tech Workspace Components Distribution,\n\nI want to log a procurement validation inquiry for the following system asset:\n\nHardware Label: ${name}\nCategory Track: ${category}\nRelease Market Cost: ₱${(price || 0).toLocaleString()}\n\nPlease run a balance verification on stock units availability and push transaction payment routing models.\n\nThank you!`);
         
         window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${recipient}&su=${subject}&body=${body}`, '_blank');
     }
 
-    // --- PAGINATION INTERACTIVE CONTROLS ---
-    window.navigatePage = (direction) => {
-        currentPage += direction;
-        executeAdvancedFilter();
-    };
-
-    function processPaginationUI(totalItemsCount) {
-        const totalPages = Math.ceil(totalItemsCount / itemsPerPage) || 1;
-        if(currentPage > totalPages) currentPage = totalPages;
-        
-        document.getElementById('pageInfoDetails').innerText = `Page ${currentPage} of ${totalPages}`;
-        document.getElementById('btnPrevPage').disabled = (currentPage === 1);
-        document.getElementById('btnNextPage').disabled = (currentPage === totalPages);
-
-        if(totalItemsCount <= itemsPerPage) {
-            document.getElementById('paginationModule').classList.add('hidden');
-        } else {
-            document.getElementById('paginationModule').classList.remove('hidden');
-        }
-    }
-
-    // --- AUTH BACKEND ROUTINES ---
+    // --- CLOUD AUTH CONTROL PANEL LAYERS ---
     const authBtn = document.getElementById('authBtn');
     document.getElementById('toggleAuth').onclick = () => {
         isLogin = !isLogin;
-        document.getElementById('authTitle').innerText = isLogin ? "Cloud Login" : "Admin Signup";
-        authBtn.innerText = isLogin ? "Sign In" : "Register Admin";
+        document.getElementById('authDesc').innerText = isLogin ? "Cloud Logistics Array Authentication Gateway" : "Register fresh terminal administrative gateway permission matrix.";
+        authBtn.innerText = isLogin ? "Verify Operator Handshake" : "Build System Admin Workspace Node";
     };
 
     authBtn.onclick = () => {
@@ -788,7 +678,7 @@
         });
     }
 
-    // --- DATA MUTATION ACTIONS ---
+    // --- MUTATION ACTIONS / ENGINE INSERTS ---
     document.getElementById('actionBtn').onclick = () => {
         const name = document.getElementById('pName').value;
         const category = document.getElementById('pCategory').value;
@@ -799,12 +689,12 @@
         const q = parseInt(document.getElementById('qty').value) || 0;
         const details = document.getElementById('pDetails').value;
 
-        if(!name) return alert("Please specify a valid product name.");
+        if(!name) return alert("Please specify a valid technical product name label.");
         
         const payload = { name, category, status, date, buy: b, sell: s, qty: q, details, images: currentBase64Images, profit: (s - b) * q };
         
         push(inventoryRef, payload).then(() => {
-            alert("Stock Cloud Registry Complete!");
+            alert("Stock Cloud Vector Registry Sync Sequence Complete!");
             document.querySelectorAll('#v-add input').forEach(i => i.value = '');
             document.getElementById('pDetails').value = '';
             document.getElementById('pStatus').value = 'available';
@@ -824,60 +714,24 @@
         const q = parseInt(document.getElementById('m_qty').value) || 0;
         const details = document.getElementById('m_pDetails').value;
 
-        const payload = { name, category, status, date, buy: b, sell: s, qty: q, details, images: editBase64Images, profit: (s - b) * q };
+        const payload = { name, category, status, date, buy: b, sell: s, qty: q, details, profit: (s - b) * q };
         
-        update(ref(db, 'inventory/' + id), payload).then(() => { 
-            alert("Cloud Record Updated Successfully!");
-            window.closeEditModal(); 
-        });
+        update(ref(db, 'inventory/' + id), payload).then(() => { window.closeEditModal(); });
     };
 
-    // --- ADVANCED LIVE SEARCH & MULTI-SPEC FILTER CONTROLS ---
-    function executeAdvancedFilter() {
-        const textSearchVal = document.getElementById('searchBar').value.toLowerCase();
-        const cpuFilterVal = document.getElementById('filterCpu').value.toLowerCase();
-        const ramFilterVal = document.getElementById('filterRam').value.toLowerCase();
-        const screenFilterVal = document.getElementById('filterScreen').value.toLowerCase();
-
-        const filtered = fullData.filter(item => {
-            const itemName = (item.name || '').toLowerCase();
-            const itemDetails = (item.details || '').toLowerCase();
-            const itemCategory = (item.category || '').toLowerCase();
-
-            // 1. Text Search verification across Name, Specifications, and Category
-            const matchesText = itemName.includes(textSearchVal) || 
-                                itemDetails.includes(textSearchVal) || 
-                                itemCategory.includes(textSearchVal);
-
-            // 2. Hardware Spec Pill dropdown parameter verification
-            const matchesCpu = !cpuFilterVal || itemName.includes(cpuFilterVal) || itemDetails.includes(cpuFilterVal);
-            const matchesRam = !ramFilterVal || itemName.includes(ramFilterVal) || itemDetails.includes(ramFilterVal);
-            const matchesScreen = !screenFilterVal || itemName.includes(screenFilterVal) || itemDetails.includes(screenFilterVal);
-
-            return matchesText && matchesCpu && matchesRam && matchesScreen;
-        });
-
+    // --- LIVE CONTROLS GRAPH SEARCH TUNNEL ---
+    document.getElementById('searchBar').oninput = (e) => {
+        const val = e.target.value.toLowerCase();
+        const filtered = fullData.filter(i => 
+            i.name.toLowerCase().includes(val) || 
+            (i.details && i.details.toLowerCase().includes(val)) ||
+            i.category.toLowerCase().includes(val)
+        );
         filterAndRenderLayouts(filtered);
-    }
-
-    // Event hooks targeting search inputs and spec selectors concurrently
-    document.getElementById('searchBar').oninput = () => { currentPage = 1; executeAdvancedFilter(); };
-    document.getElementById('filterCpu').onchange = () => { currentPage = 1; executeAdvancedFilter(); };
-    document.getElementById('filterRam').onchange = () => { currentPage = 1; executeAdvancedFilter(); };
-    document.getElementById('filterScreen').onchange = () => { currentPage = 1; executeAdvancedFilter(); };
-
-    // Clear filters action reset handler
-    document.getElementById('btnClearFilters').onclick = () => {
-        document.getElementById('searchBar').value = '';
-        document.getElementById('filterCpu').value = '';
-        document.getElementById('filterRam').value = '';
-        document.getElementById('filterScreen').value = '';
-        currentPage = 1;
-        filterAndRenderLayouts(fullData);
     };
 
     function renderDashboard() {
-        executeAdvancedFilter();
+        filterAndRenderLayouts(fullData);
         renderHistory(fullData);
         
         let pos = 0, neg = 0, monthly = {};
@@ -898,30 +752,20 @@
         mGrid.innerHTML = '';
         Object.keys(monthly).sort().reverse().forEach(k => {
             mGrid.innerHTML += `
-                <div class="kpi-card" style="min-width: 140px; text-align: center; padding: 15px;">
+                <div class="kpi-card" style="min-width: 140px; text-align: center; padding: 15px; border-top: 3px solid var(--primary);">
                     <h4 style="margin:0; font-size: 0.75rem;">${monthly[k].label}</h4>
-                    <p style="margin: 5px 0 0; font-weight:700; color:var(--primary)">₱${monthly[k].p.toLocaleString()}</p>
+                    <p style="margin: 5px 0 0; font-weight:700; color:var(--text-main)">₱${monthly[k].p.toLocaleString()}</p>
                 </div>`;
         });
     }
 
-    // --- CONDITIONAL VIEWPORTS ROUTING ENGINE ---
+    // --- CORE GRAPH ROUTER LAYOUTS MATRIX ---
     function filterAndRenderLayouts(items) {
-        // Date sorting descending
-        items.sort((a,b) => new Date(b.date) - new Date(a.date));
-
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        const endIndex = startIndex + itemsPerPage;
-
         if(currentRole === 'admin') {
-            processPaginationUI(items.length);
-            const paginatedItems = items.slice(startIndex, endIndex);
-            renderAdminTable(paginatedItems);
+            renderAdminTable(items);
         } else {
             const publicAvailableItems = items.filter(i => i.qty >= 1 && i.qty <= 100000 && i.status !== 'sold');
-            processPaginationUI(publicAvailableItems.length);
-            const paginatedItems = publicAvailableItems.slice(startIndex, endIndex);
-            renderGuestCatalog(paginatedItems);
+            renderGuestCatalog(publicAvailableItems);
         }
     }
 
@@ -929,7 +773,7 @@
         const tbody = document.getElementById('inventoryBody');
         tbody.innerHTML = '';
         
-        data.forEach(i => {
+        data.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(i => {
             const row = tbody.insertRow();
             let imageSection = '';
             if(i.images && i.images.length > 0){
@@ -942,13 +786,13 @@
 
             const statusLabel = (i.status === 'sold') ? 
                 `<span class="badge badge-danger">Sold Out</span>` : 
-                `<span class="badge badge-success">In Stock</span>`;
+                `<span class="badge badge-success">Active Grid</span>`;
 
             row.innerHTML = `
                 <td>
                     ${imageSection}
                     <strong>${i.name}</strong><br>
-                    <small style="color:var(--text-muted); display:block; max-width:300px;">${i.details || 'No catalog details.'}</small>
+                    <small style="color:var(--text-muted); display:block; max-width:300px;">${i.details || 'No catalog structural details logged.'}</small>
                 </td>
                 <td>₱${(i.buy || 0).toLocaleString()}</td>
                 <td>₱${(i.sell || 0).toLocaleString()}</td>
@@ -971,7 +815,7 @@
         container.innerHTML = '';
 
         if(data.length === 0) {
-            container.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 40px;">No available stock matching your search filters.</p>`;
+            container.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 40px;">No available stock matching your search parameters inside directory matrices.</p>`;
             return;
         }
 
@@ -982,7 +826,7 @@
 
             let imgTag = `<div class="catalog-img-placeholder"><i class="fa-regular fa-image"></i></div>`;
             if(i.images && i.images.length > 0) {
-                imgTag = `<img src="${i.images[0]}" alt="Product catalog cover">`;
+                imgTag = `<img src="${i.images[0]}" alt="Product catalog verification cover">`;
             }
 
             card.innerHTML = `
@@ -990,10 +834,10 @@
                 <div class="catalog-info">
                     <span class="badge badge-primary" style="margin-bottom: 8px;">${i.category || 'Product'}</span>
                     <h3 class="catalog-title">${i.name}</h3>
-                    <p class="catalog-desc">${i.details || 'Click to view complete configurations and technical details.'}</p>
+                    <p class="catalog-desc">${i.details || 'Click to fetch deep technical features, condition variables and architecture details.'}</p>
                     <div class="catalog-footer">
                         <div class="catalog-price">₱${(i.sell || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}</div>
-                        <span style="font-size: 0.8rem; font-weight:600; color: var(--success);"><i class="fa-solid fa-circle-check"></i> Available</span>
+                        <span style="font-size: 0.8rem; font-weight:600; color: var(--success);"><i class="fa-solid fa-circle-check"></i> Stock Verified</span>
                     </div>
                 </div>
             `;
@@ -1011,8 +855,8 @@
             const profitVal = i.profit || 0;
             row.innerHTML = `
                 <td>${i.date || 'N/A'}</td>
-                <td><strong>${i.name}</strong><br><small style="color:var(--text-muted)">Qty: ${i.qty}</small></td>
-                <td style="color: ${profitVal >= 0 ? 'var(--success)' : 'var(--danger)'}; font-weight:600;">₱${profitVal.toLocaleString()}</td>
+                <td><strong>${i.name}</strong><br><small style="color:var(--text-muted)">Units Array Balance: ${i.qty}</small></td>
+                <td style="color: ${profitVal >= 0 ? 'var(--success)' : 'var(--warning)'}; font-weight:600;">₱${profitVal.toLocaleString()}</td>
             `;
         });
     }
