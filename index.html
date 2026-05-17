@@ -151,7 +151,7 @@
         .catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 30px; margin-top: 20px; }
         .catalog-card { 
             background: white; border-radius: 20px; border: 1px solid var(--border-color); overflow: hidden; 
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.01); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.01); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;
         }
         .catalog-card:hover { transform: translateY(-6px); box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.1); border-color: var(--primary); }
         .catalog-img-frame { width: 100%; height: 210px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; border-bottom: 1px solid var(--border-color); }
@@ -171,7 +171,7 @@
         .badge-danger { background: var(--warning-glow); color: var(--warning); border: 1px solid rgba(255,107,0,0.1); }
 
         /* Image Media Previews */
-        .preview-container { display: flex; gap: 10px; margin-top: 10px; }
+        .preview-container { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
         .preview-img { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border-color); transition: all 0.2s ease; }
         .preview-img:hover { border-color: var(--primary); transform: scale(1.05); }
 
@@ -323,7 +323,7 @@
                     <input type="number" id="sPrice" placeholder="0.00">
                 </div>
                 <div class="full-width">
-                    <label>Product Photos (Max 3)</label>
+                    <label>Product Photos (Max 5)</label>
                     <input type="file" id="pPhotos" multiple accept="image/*" style="padding: 8px; background: #ffffff;">
                     <div id="photoPreviewContainer" class="preview-container"></div>
                 </div>
@@ -365,8 +365,8 @@
     <section id="v-qr" class="view-section admin-only">
         <h1>QR Scanner</h1>
         <p style="color: var(--text-muted); margin-bottom:20px;">Position the product code QR cleanly inside the scanner viewport window.</p>
-        <button class="btn btn-primary" onclick="startScanner()"><i class="fas fa-camera" style="margin-right:10px;"></i> Start Camera</button>
-        <div id="reader" style="margin-top: 20px; border-radius:12px; overflow:hidden;"></div>
+        <button class="btn btn-primary" id="startCamBtn"><i class="fas fa-camera" style="margin-right:10px;"></i> Start Camera</button>
+        <div id="reader" style="margin-top: 20px; border-radius:12px; overflow:hidden; max-width: 500px; background: #fafafa;"></div>
     </section>
 
     <section id="v-history" class="view-section admin-only">
@@ -388,7 +388,7 @@
     <section id="v-about" class="view-section">
         <h1>About the System</h1>
         <div class="form-card">
-            <p><strong>System Version:</strong> 4.0 (Branded Edition)</p>
+            <p><strong>System Version:</strong> 4.1 (Branded Scanner Update)</p>
             <p style="line-height:1.6;">This inventory system allows administrators to manage refurbished stock configurations while building light inquiry communication workflows directly with online retail buyers.</p>
         </div>
     </section>
@@ -492,10 +492,11 @@
     let isLogin = true;
     let currentRole = 'guest'; 
     let currentBase64Images = [];
+    let qrScannerInstance = null;
 
-    // --- PHOTO PROCESSING ---
+    // --- PHOTO PROCESSING (ADJUSTED TO 5 PHOTOS MAX) ---
     document.getElementById('pPhotos').addEventListener('change', function(e) {
-        const files = Array.from(e.target.files).slice(0, 3);
+        const files = Array.from(e.target.files).slice(0, 5);
         currentBase64Images = [];
         const previewContainer = document.getElementById('photoPreviewContainer');
         previewContainer.innerHTML = '';
@@ -512,6 +513,32 @@
             reader.readAsDataURL(file);
         });
     });
+
+    // --- QR CODE SCANNER INITIALIZATION ENGINE FIXED ---
+    document.getElementById('startCamBtn').onclick = () => {
+        if (qrScannerInstance) {
+            qrScannerInstance.clear();
+        }
+        
+        qrScannerInstance = new Html5QrcodeScanner("reader", { 
+            fps: 10, 
+            qrbox: { width: 250, height: 250 },
+            rememberLastUsedCamera: true
+        }, false);
+        
+        qrScannerInstance.render((decodedText) => {
+            // Success Callback logic when a QR string is verified
+            document.getElementById('searchBar').value = decodedText;
+            document.getElementById('searchBar').dispatchEvent(new Event('input'));
+            showView('v-list', document.getElementById('navList'));
+            
+            if(qrScannerInstance) {
+                qrScannerInstance.clear();
+            }
+        }, (errorMessage) => {
+            // Silent error tracking to prevent warning spam
+        });
+    };
 
     // --- GATEWAY LAYER ROUTING MIGRATIONS ---
     function configureUIVisibility() {
@@ -544,6 +571,10 @@
 
     // --- GLOBAL SCOPE WINDOW BRIDGES ---
     window.showView = (id, el) => {
+        // Clear QR track when switching screens to release camera
+        if (id !== 'v-qr' && qrScannerInstance) {
+            qrScannerInstance.clear().catch(err => console.log(err));
+        }
         document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -551,6 +582,7 @@
     };
 
     window.logout = () => {
+        if (qrScannerInstance) qrScannerInstance.clear().catch(err => console.log(err));
         if (currentRole === 'admin') {
             signOut(auth);
         } else {
