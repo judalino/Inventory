@@ -145,7 +145,7 @@
         .badge-danger { background: #fee2e2; color: #991b1b; }
 
         /* Photo Previews */
-        .preview-container { display: flex; gap: 10px; margin-top: 10px; }
+        .preview-container { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
         .preview-img { width: 60px; height: 60px; border-radius: 6px; object-fit: cover; border: 1px solid #cbd5e1; cursor: pointer; }
 
         /* Modal Styling */
@@ -165,6 +165,42 @@
         /* Detail View Modal Elements */
         .modal-gallery { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
         .main-modal-img { width: 100%; height: 300px; object-fit: contain; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; }
+
+        /* Pagination Control System UI */
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 30px;
+            padding: 10px;
+        }
+        .pagination-btn {
+            background-color: var(--card);
+            border: 1px solid #e2e8f0;
+            color: var(--text-main);
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .pagination-btn:hover:not(:disabled) {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        .pagination-btn:disabled {
+            background-color: #f1f5f9;
+            color: #cbd5e1;
+            cursor: not-allowed;
+        }
+        .pagination-info {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
 
         .hidden { display: none !important; }
         
@@ -194,8 +230,8 @@
         </div>
 
         <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e2e8f0; text-align: center;">
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">Looking for parts or systems?</p>
-            <button class="btn btn-info" id="guestBtn" style="width: 100%; background-color: #0284c7;"><i class="fas fa-eye" style="margin-right: 8px;"></i>Open Access Dashboard</button>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">Looking for Laptop, Ram and Sorage?</p>
+            <button class="btn btn-info" id="guestBtn" style="width: 100%; background-color: #0284c7;"><i class="fas fa-eye" style="margin-right: 8px;"></i>View our Available Product List</button>
         </div>
     </div>
 </div>
@@ -232,7 +268,7 @@
 <main class="main-content hidden" id="mainContent">
     
     <section id="v-dash" class="view-section admin-only active">
-        <h1 style="margin-top: 0;">Performance Overview</h1>
+        <h1 style="margin-top: 0;">Sales Overview</h1>
         <div class="kpi-grid">
             <div class="kpi-card" style="border-left: 5px solid var(--success);">
                 <h3>Total Profit</h3>
@@ -247,7 +283,7 @@
                 <div class="value" id="kpi-net">₱0</div>
             </div>
         </div>
-        <h3>Monthly Trend</h3>
+        <h3>Monthly Sales Projection</h3>
         <div id="monthlyGrid" class="monthly-scroll-container" style="display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px;"></div>
     </section>
 
@@ -329,6 +365,12 @@
         </div>
 
         <div id="guestCatalogContainer" class="catalog-grid hidden"></div>
+
+        <div id="paginationModule" class="pagination-container">
+            <button id="btnPrevPage" class="pagination-btn" onclick="navigatePage(-1)"><i class="fas fa-chevron-left"></i> Prev</button>
+            <span id="pageInfoDetails" class="pagination-info">Page 1 of 1</span>
+            <button id="btnNextPage" class="pagination-btn" onclick="navigatePage(1)">Next <i class="fas fa-chevron-right"></i></button>
+        </div>
     </section>
 
     <section id="v-qr" class="view-section admin-only">
@@ -357,7 +399,7 @@
     <section id="v-about" class="view-section">
         <h1>About JSH2Tech</h1>
         <div class="form-card">
-            <p><strong>Version:</strong> 3.1 (Enterprise OpenAccess Edition)</p>
+            <p><strong>Version:</strong> 3.2 (Enterprise OpenAccess Edition)</p>
             <p>JSH2Tech Cloud Inventory provides dynamic synchronization for admins and effortless communication pipelines for commercial buyers and clients.</p>
         </div>
     </section>
@@ -406,6 +448,11 @@
                 <input type="number" id="m_sPrice">
             </div>
             <div class="full-width">
+                <label style="font-size: 0.8rem;">Modify Photos (Overwrites Old Photos - Max 3)</label>
+                <input type="file" id="m_pPhotos" multiple accept="image/*" style="padding: 8px;">
+                <div id="modalPreviewContainer" class="preview-container"></div>
+            </div>
+            <div class="full-width">
                 <label style="font-size: 0.8rem;">Product Details</label>
                 <textarea id="m_pDetails" rows="2"></textarea>
             </div>
@@ -438,10 +485,9 @@
 </div>
 
 <script type="module">
-    // Added unique timestamp query suffixes (?v=) to completely break downstream mobile cache memory stalls
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js?v=1.0.1";
-    import { getDatabase, ref, set, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js?v=1.0.1";
-    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js?v=1.0.1";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, set, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyCaU8ZlDt3iWsqMnLzmMF2cwe_Zj6Ls72A",
@@ -462,8 +508,13 @@
     let isLogin = true;
     let currentRole = 'guest'; 
     let currentBase64Images = [];
+    let editBase64Images = [];
 
-    // --- PHOTO PROCESSING LOGIC ---
+    // --- PAGINATION DATA TRACKERS ---
+    let currentPage = 1;
+    let itemsPerPage = 5; 
+
+    // --- PHOTO PROCESSING LOGIC (REGISTER) ---
     document.getElementById('pPhotos').addEventListener('change', function(e) {
         const files = Array.from(e.target.files).slice(0, 3);
         currentBase64Images = [];
@@ -483,9 +534,31 @@
         });
     });
 
+    // --- PHOTO PROCESSING LOGIC (EDIT MODAL) ---
+    document.getElementById('m_pPhotos').addEventListener('change', function(e) {
+        const files = Array.from(e.target.files).slice(0, 3);
+        editBase64Images = [];
+        const previewContainer = document.getElementById('modalPreviewContainer');
+        previewContainer.innerHTML = '';
+
+        files.forEach(file => {
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                editBase64Images.push(evt.target.result);
+                const img = document.createElement('img');
+                img.src = evt.target.result;
+                img.classList.add('preview-img');
+                previewContainer.appendChild(img);
+            }
+            reader.readAsDataURL(file);
+        });
+    });
+
     // --- GATEWAY LAYER ROUTING MIGRATIONS ---
     function configureUIVisibility() {
+        currentPage = 1; 
         if(currentRole === 'admin') {
+            itemsPerPage = 10; 
             document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
             document.getElementById('adminTableContainer').classList.remove('hidden');
             document.getElementById('guestCatalogContainer').classList.add('hidden');
@@ -493,6 +566,7 @@
             document.getElementById('listHeader').innerText = "Inventory Management Workspace";
             showView('v-dash', document.getElementById('navDash'));
         } else {
+            itemsPerPage = 5; 
             document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden'));
             document.getElementById('adminTableContainer').classList.add('hidden');
             document.getElementById('guestCatalogContainer').classList.remove('hidden');
@@ -548,6 +622,18 @@
         document.getElementById('m_sPrice').value = item.sell || 0;
         document.getElementById('m_pDetails').value = item.details || '';
         
+        // Show existing images in the modal preview frame
+        editBase64Images = item.images || [];
+        const previewContainer = document.getElementById('modalPreviewContainer');
+        previewContainer.innerHTML = '';
+        editBase64Images.forEach(imgData => {
+            const img = document.createElement('img');
+            img.src = imgData;
+            img.classList.add('preview-img');
+            previewContainer.appendChild(img);
+        });
+
+        document.getElementById('m_pPhotos').value = ''; 
         document.getElementById('editModal').classList.remove('hidden');
     };
 
@@ -569,11 +655,11 @@
         const thumbContainer = document.getElementById('d_thumbContainer');
         thumbContainer.innerHTML = '';
 
-        if(item.images && Array.isArray(item.images) && item.images.length > 0) {
+        if(item.images && item.images.length > 0) {
             mainImg.src = item.images[0];
             mainImg.classList.remove('hidden');
             
-            item.images.forEach((imgBase64, index) => {
+            item.images.forEach((imgBase64) => {
                 const thumb = document.createElement('img');
                 thumb.src = imgBase64;
                 thumb.classList.add('preview-img');
@@ -602,6 +688,27 @@
         const body = encodeURIComponent(`Hello JSH2Tech,\n\nI want to purchase the following item found on your catalog:\n\nProduct Name: ${name}\nCategory: ${category}\nListed Price: ₱${(price || 0).toLocaleString()}\n\nPlease verify availability and provide payment details.\n\nThank you!`);
         
         window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${recipient}&su=${subject}&body=${body}`, '_blank');
+    }
+
+    // --- PAGINATION INTERACTIVE CONTROLS ---
+    window.navigatePage = (direction) => {
+        currentPage += direction;
+        filterAndRenderLayouts(fullData);
+    };
+
+    function processPaginationUI(totalItemsCount) {
+        const totalPages = Math.ceil(totalItemsCount / itemsPerPage) || 1;
+        if(currentPage > totalPages) currentPage = totalPages;
+        
+        document.getElementById('pageInfoDetails').innerText = `Page ${currentPage} of ${totalPages}`;
+        document.getElementById('btnPrevPage').disabled = (currentPage === 1);
+        document.getElementById('btnNextPage').disabled = (currentPage === totalPages);
+
+        if(totalItemsCount <= itemsPerPage) {
+            document.getElementById('paginationModule').classList.add('hidden');
+        } else {
+            document.getElementById('paginationModule').classList.remove('hidden');
+        }
     }
 
     // --- AUTH BACKEND ROUTINES ---
@@ -682,13 +789,17 @@
         const q = parseInt(document.getElementById('m_qty').value) || 0;
         const details = document.getElementById('m_pDetails').value;
 
-        const payload = { name, category, status, date, buy: b, sell: s, qty: q, details, profit: (s - b) * q };
+        const payload = { name, category, status, date, buy: b, sell: s, qty: q, details, images: editBase64Images, profit: (s - b) * q };
         
-        update(ref(db, 'inventory/' + id), payload).then(() => { window.closeEditModal(); });
+        update(ref(db, 'inventory/' + id), payload).then(() => { 
+            alert("Cloud Record Updated Successfully!");
+            window.closeEditModal(); 
+        });
     };
 
     // --- LIVE FILTER CONTROLS ---
     document.getElementById('searchBar').oninput = (e) => {
+        currentPage = 1; 
         const val = e.target.value.toLowerCase();
         const filtered = fullData.filter(i => 
             i.name.toLowerCase().includes(val) || 
@@ -729,15 +840,21 @@
 
     // --- CONDITIONAL VIEWPORTS ROUTING ENGINE ---
     function filterAndRenderLayouts(items) {
+        // Date sorting descending
+        items.sort((a,b) => new Date(b.date) - new Date(a.date));
+
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+
         if(currentRole === 'admin') {
-            renderAdminTable(items);
+            processPaginationUI(items.length);
+            const paginatedItems = items.slice(startIndex, endIndex);
+            renderAdminTable(paginatedItems);
         } else {
-            // CRITICAL HIDE ENGINE RULE: Quantities missing or explicitly 1-100k AND status MUST NOT be 'sold'
-            const publicAvailableItems = items.filter(i => 
-                (i.qty === undefined || i.qty === null || (i.qty >= 1 && i.qty <= 100000)) && 
-                i.status !== 'sold'
-            );
-            renderGuestCatalog(publicAvailableItems);
+            const publicAvailableItems = items.filter(i => i.qty >= 1 && i.qty <= 100000 && i.status !== 'sold');
+            processPaginationUI(publicAvailableItems.length);
+            const paginatedItems = publicAvailableItems.slice(startIndex, endIndex);
+            renderGuestCatalog(paginatedItems);
         }
     }
 
@@ -745,13 +862,13 @@
         const tbody = document.getElementById('inventoryBody');
         tbody.innerHTML = '';
         
-        data.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(i => {
+        data.forEach(i => {
             const row = tbody.insertRow();
             let imageSection = '';
-            if(i.images && Array.isArray(i.images) && i.images.length > 0){
+            if(i.images && i.images.length > 0){
                 imageSection = `<div class="preview-container" style="margin-bottom:8px;">`;
                 i.images.forEach(imgBase64 => {
-                    if(imgBase64) imageSection += `<img src="${imgBase64}" class="preview-img" style="width:40px; height:40px;" />`;
+                    imageSection += `<img src="${imgBase64}" class="preview-img" style="width:40px; height:40px;" />`;
                 });
                 imageSection += `</div>`;
             }
@@ -771,7 +888,7 @@
                 <td><span class="badge badge-primary">${i.category || 'Unassigned'}</span></td>
                 <td>${i.date || '---'}</td>
                 <td>
-                    <strong>${i.qty || 0} Units</strong><br>
+                    <strong>${i.qty} Units</strong><br>
                     <div style="margin-top: 4px;">${statusLabel}</div>
                 </td>
                 <td>
@@ -786,7 +903,7 @@
         const container = document.getElementById('guestCatalogContainer');
         container.innerHTML = '';
 
-        if(!data || data.length === 0) {
+        if(data.length === 0) {
             container.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 40px;">No available stock matching your search filters.</p>`;
             return;
         }
@@ -796,9 +913,8 @@
             card.classList.add('catalog-card');
             card.onclick = () => openDetailsModal(i.id);
 
-            // Added strict checks to gracefully load placeholders if records are missing image objects
             let imgTag = `<div class="catalog-img-placeholder"><i class="fa-regular fa-image"></i></div>`;
-            if(i.images && Array.isArray(i.images) && i.images.length > 0 && i.images[0]) {
+            if(i.images && i.images.length > 0) {
                 imgTag = `<img src="${i.images[0]}" alt="Product catalog cover">`;
             }
 
@@ -828,7 +944,7 @@
             const profitVal = i.profit || 0;
             row.innerHTML = `
                 <td>${i.date || 'N/A'}</td>
-                <td><strong>${i.name}</strong><br><small style="color:var(--text-muted)">Qty: ${i.qty || 0}</small></td>
+                <td><strong>${i.name}</strong><br><small style="color:var(--text-muted)">Qty: ${i.qty}</small></td>
                 <td style="color: ${profitVal >= 0 ? 'var(--success)' : 'var(--danger)'}; font-weight:600;">₱${profitVal.toLocaleString()}</td>
             `;
         });
